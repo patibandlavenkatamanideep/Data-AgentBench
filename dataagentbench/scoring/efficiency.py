@@ -16,8 +16,8 @@ class EfficiencyResult:
 class EfficiencyScorer:
     """Score 0.0–1.0 based on token and step efficiency."""
 
-    # Token budget per difficulty
-    TOKEN_BUDGETS = {"easy": 4_000, "medium": 8_000, "hard": 16_000}
+    # Token budget per difficulty — calibrated from real claude-sonnet-4-6 runs
+    TOKEN_BUDGETS = {"easy": 20_000, "medium": 50_000, "hard": 30_000}
 
     def score(
         self,

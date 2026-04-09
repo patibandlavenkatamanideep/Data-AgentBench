@@ -15,12 +15,13 @@ DataAgentBench (DAB) measures how well LLM agents perform real data science work
 
 | Task | Difficulty | Correctness | Code Quality | Efficiency | Stat Validity | **DAB Score** |
 |------|-----------|:-----------:|:------------:|:----------:|:-------------:|:-------------:|
-| eda_001 — Income Distribution Analysis | Easy | 1.000 | 0.720 | 0.250 | 1.000 | **0.832** |
-| eda_002 — Patient Records Audit | Medium | 0.667 | 0.820 | 0.100 | 0.750 | **0.629** |
-| eda_003 — Confounding Detection | Hard | 1.000 | 0.720 | 0.534 | 1.000 | **0.888** |
-| **Average** | | **0.889** | **0.753** | **0.295** | **0.917** | **0.783** |
+| eda_001 — Income Distribution Analysis | Easy | 1.000 | 0.667 | 0.950 | 1.000 | **0.926** |
+| eda_002 — Patient Records Audit | Medium | 0.667 | 0.771 | 0.970 | 0.500 | **0.700** |
+| eda_003 — Confounding Detection | Hard | 1.000 | 0.825 | 0.696 | 1.000 | **0.928** |
+| **Average** | | **0.889** | **0.754** | **0.872** | **0.833** | **0.851** |
 
-> Scored with `claude-sonnet-4-6`. Efficiency scores reflect token/step usage vs per-task budgets.
+> Scored with `claude-sonnet-4-6`. Token budgets calibrated from real runs (easy 20k, medium 50k, hard 30k).
+> Live leaderboard: [patibandlavenkatamanideep.github.io/Data-AgentBench](https://patibandlavenkatamanideep.github.io/Data-AgentBench/)
 
 ---
 
