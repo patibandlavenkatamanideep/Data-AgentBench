@@ -8,6 +8,10 @@ import sys
 from pathlib import Path
 
 import click
+from dotenv import load_dotenv
+
+# Load .env from project root automatically
+load_dotenv(Path(__file__).parent.parent / ".env")
 from rich.console import Console
 from rich.table import Table
 
