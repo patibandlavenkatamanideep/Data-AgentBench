@@ -4,28 +4,122 @@
 [![Tests](https://img.shields.io/badge/tests-120%2B%20passing-brightgreen)](https://github.com/patibandlavenkatamanideep/RealDataAgentBench/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/patibandlavenkatamanideep/RealDataAgentBench/blob/main/LICENSE)
+[![Leaderboard](https://img.shields.io/badge/leaderboard-live-brightgreen)](https://patibandlavenkatamanideep.github.io/RealDataAgentBench/)
 
-> **The benchmark that checks if LLM agents do real data science — not just get the right number.**
+> **The benchmark that forces LLM agents to think like real statisticians — not just get the right number.**
 
-RealDataAgentBench (RDAB) evaluates LLM agents on statistically rigorous data science tasks: exploratory analysis, feature engineering, confounding detection, and imbalanced classification. Unlike most benchmarks, RDAB scores four independent dimensions — correctness, code quality, efficiency, and statistical validity — so you know *why* an agent succeeded or failed.
+This benchmark forces LLM agents to think like real statisticians, not just copy answers. It measures four things most benchmarks ignore: whether the agent's code is production-quality, whether it uses the right statistical methods, whether it works efficiently, and whether it actually gets the right answer.
+
+- **18 tasks** across EDA, Feature Engineering, Modeling, and Statistical Inference
+- **4 models benchmarked**: Claude Sonnet, GPT-4o, GPT-4o-mini, Claude Haiku — with real scores from real API runs
+- **4-dimension scoring**: Correctness · Code Quality · Efficiency · Statistical Validity — so you know exactly *where* each model wins or fails
 
 ---
 
-## Leaderboard (2026-04-09 · 6 shared tasks + 2 GPT-4o only)
+## Leaderboard (38 runs · 4 models · 18 tasks)
 
-| Task | Difficulty | claude-sonnet-4-6 | gpt-4o |
-|------|-----------|:-----------------:|:------:|
-| eda_001 — Income Distribution | Easy | **0.926** | 0.900 |
-| eda_002 — Patient Records Audit | Medium | 0.700 | 0.750 |
-| eda_003 — Confounding Detection | Hard | **0.928** | 0.830 |
-| feat_001 — House Price Features | Easy | **0.749** | 0.657 |
-| feat_002 — Employee Attrition | Medium | **0.797** | 0.711 |
-| feat_003 — Retail Datetime Features | Medium | 0.727 | **0.837** |
-| feat_004 — Credit Risk Selection | Hard | — *(pending)* | **0.768** |
-| feat_005 — Fraud Imbalance | Hard | — *(pending)* | **0.802** |
-| **Average (6 shared tasks)** | | **0.804** | 0.781 |
+| Model | Avg RDAB Score | Tasks Run |
+|-------|:--------------:|:---------:|
+| **claude-sonnet-4-6** | **0.799** | 8 |
+| gpt-4o-mini | 0.780 | 5 |
+| gpt-4o | 0.779 | 17 |
+| claude-haiku | 0.763 | 8 |
 
-> Live leaderboard: [patibandlavenkatamanideep.github.io/RealDataAgentBench](https://patibandlavenkatamanideep.github.io/RealDataAgentBench/)
+> Live leaderboard with per-task breakdowns: [patibandlavenkatamanideep.github.io/RealDataAgentBench](https://patibandlavenkatamanideep.github.io/RealDataAgentBench/)
+
+---
+
+## What it looks like
+
+### 1. Live leaderboard table (GitHub Pages)
+
+```
+┌─────────────────────┬───────────┬───────────────────┬────────────┬────────────────┐
+│ Task                │ Difficulty│ claude-sonnet-4-6 │  gpt-4o    │  claude-haiku  │
+├─────────────────────┼───────────┼───────────────────┼────────────┼────────────────┤
+│ eda_001 Income Dist │ Easy      │      0.933        │   0.900    │     0.920      │
+│ eda_002 Patient Recs│ Medium    │      0.700        │   0.750    │     0.625      │
+│ eda_003 Confounding │ Hard      │      0.944        │   0.830    │     0.831      │
+│ feat_001 House Prices│ Easy     │      0.776        │   0.660    │     0.747      │
+│ feat_002 Attrition  │ Medium    │      0.797        │   0.711    │     0.653      │
+│ feat_003 Retail Sales│ Medium   │      0.727        │   0.837    │     0.855      │
+│ feat_004 Credit Risk│ Hard      │      0.777        │   0.768    │     0.745      │
+│ feat_005 Fraud Imbal│ Hard      │      0.742        │   0.802    │     0.728      │
+├─────────────────────┼───────────┼───────────────────┼────────────┼────────────────┤
+│ Average             │           │    **0.799**       │   0.779    │     0.763      │
+└─────────────────────┴───────────┴───────────────────┴────────────┴────────────────┘
+```
+
+### 2. Agent thinking trace — GPT-4o on `stat_001` (A/B test analysis)
+
+```python
+# Step 4 — agent writes and runs this code autonomously
+grouped = df.groupby('group')['converted'].mean()
+control_rate   = grouped['control']    # 0.0820
+treatment_rate = grouped['treatment']  # 0.1220
+
+absolute_lift = treatment_rate - control_rate   # +0.040
+relative_lift = absolute_lift / control_rate    # +48.8%
+
+from scipy import stats
+control_n    = len(df[df['group'] == 'control'])
+treatment_n  = len(df[df['group'] == 'treatment'])
+z, p = stats.proportions_ztest(
+    [int(treatment_rate * treatment_n), int(control_rate * control_n)],
+    [treatment_n, control_n]
+)
+print(f"z={z:.3f}  p={p:.4f}  significant={'YES' if p < 0.05 else 'NO'}")
+# → z=2.847  p=0.0044  significant=YES
+```
+
+> Agent scored **0.912** on this task — reported lift, z-test, CI, and revenue per user.
+
+### 3. CLI in action
+
+```
+$ dab run eda_001 --model gpt-4o
+
+Running eda_001 (model=gpt-4o, dry_run=False)
+
+Complete.
+  Steps: 9  |  Tokens: 11432
+
+$ dab score outputs/eda_001_20260409T094920.json
+
+              ScoreCard — eda_001
+┏━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━┓
+┃ Dimension     ┃ Score ┃ Weight ┃ Contribution ┃
+┡━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━┩
+│ Correctness   │ 1.000 │   0.50 │        0.500 │
+│ Code Quality  │ 0.750 │   0.20 │        0.150 │
+│ Efficiency    │ 1.000 │   0.15 │        0.150 │
+│ Stat Validity │ 1.000 │   0.15 │        0.150 │
+│ RDAB Score    │ 0.950 │   1.00 │        0.950 │
+└───────────────┴───────┴────────┴──────────────┘
+```
+
+### 4. Project structure
+
+```
+RealDataAgentBench/
+├── realdataagentbench/
+│   ├── core/              # Task schema (Pydantic) + registry
+│   ├── datasets/
+│   │   └── generators/    # 18 seeded, reproducible generators
+│   ├── harness/           # Agent loop + multi-model providers
+│   │   ├── providers.py   # Claude, GPT-4o, GPT-4o-mini, Haiku
+│   │   └── tools.py       # run_code, get_dataframe_info, get_column_stats
+│   └── scoring/           # Correctness · Code Quality · Efficiency · Stat Validity
+├── tasks/
+│   ├── eda/               # 3 tasks
+│   ├── feature_engineering/ # 5 tasks
+│   ├── modeling/          # 5 tasks
+│   └── statistical_inference/ # 5 tasks
+├── tests/                 # 120 offline tests — no API key needed
+├── scripts/
+│   └── build_leaderboard.py
+└── docs/                  # GitHub Pages leaderboard (auto-rebuilt by CI)
+```
 
 ---
 
