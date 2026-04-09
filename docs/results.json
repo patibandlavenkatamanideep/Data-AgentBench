@@ -1,21 +1,26 @@
 {
-  "generated_at": "2026-04-09T14:43:18.934847+00:00",
-  "total_runs": 17,
+  "generated_at": "2026-04-09T14:58:48.917829+00:00",
+  "total_runs": 21,
   "model_summary": [
     {
       "model": "claude-sonnet-4-6",
-      "avg_dab_score": 0.8044,
-      "tasks_run": 6
-    },
-    {
-      "model": "gpt-4o-mini",
-      "avg_dab_score": 0.7922,
-      "tasks_run": 3
+      "avg_dab_score": 0.8071,
+      "tasks_run": 7
     },
     {
       "model": "gpt-4o",
-      "avg_dab_score": 0.7819,
+      "avg_dab_score": 0.7823,
       "tasks_run": 8
+    },
+    {
+      "model": "gpt-4o-mini",
+      "avg_dab_score": 0.7803,
+      "tasks_run": 5
+    },
+    {
+      "model": "haiku",
+      "avg_dab_score": 0.2396,
+      "tasks_run": 1
     }
   ],
   "runs": [
@@ -28,9 +33,9 @@
       "run_at": "2026-04-09T06:23:53.006522+00:00",
       "correctness": 1.0,
       "code_quality": 0.6667,
-      "efficiency": 0.95,
+      "efficiency": 1.0,
       "stat_validity": 1.0,
-      "dab_score": 0.9258,
+      "dab_score": 0.9333,
       "total_tokens": 16269,
       "num_steps": 10
     },
@@ -63,6 +68,21 @@
       "dab_score": 0.96,
       "total_tokens": 1846,
       "num_steps": 6
+    },
+    {
+      "task_id": "eda_001",
+      "title": "Income Distribution Analysis",
+      "difficulty": "easy",
+      "category": "eda",
+      "model": "haiku",
+      "run_at": "2026-04-09T14:57:21.438746+00:00",
+      "correctness": 0.0,
+      "code_quality": 0.8286,
+      "efficiency": 0.2422,
+      "stat_validity": 0.25,
+      "dab_score": 0.2396,
+      "total_tokens": 37185,
+      "num_steps": 17
     },
     {
       "task_id": "eda_002",
@@ -118,9 +138,9 @@
       "run_at": "2026-04-09T06:32:27.234966+00:00",
       "correctness": 1.0,
       "code_quality": 0.825,
-      "efficiency": 0.6955,
+      "efficiency": 0.8021,
       "stat_validity": 1.0,
-      "dab_score": 0.9281,
+      "dab_score": 0.9441,
       "total_tokens": 39894,
       "num_steps": 23
     },
@@ -148,9 +168,9 @@
       "run_at": "2026-04-09T14:40:47.009101+00:00",
       "correctness": 0.6667,
       "code_quality": 0.9,
-      "efficiency": 0.46,
+      "efficiency": 0.5,
       "stat_validity": 1.0,
-      "dab_score": 0.7707,
+      "dab_score": 0.7767,
       "total_tokens": 13739,
       "num_steps": 21
     },
@@ -163,9 +183,9 @@
       "run_at": "2026-04-09T06:48:59.501688+00:00",
       "correctness": 1.0,
       "code_quality": 0.7556,
-      "efficiency": 0.15,
+      "efficiency": 0.33,
       "stat_validity": 0.5,
-      "dab_score": 0.7486,
+      "dab_score": 0.7756,
       "total_tokens": 77043,
       "num_steps": 27
     },
@@ -178,9 +198,9 @@
       "run_at": "2026-04-09T09:50:35.349805+00:00",
       "correctness": 0.6667,
       "code_quality": 0.8857,
-      "efficiency": 0.475,
+      "efficiency": 0.5,
       "stat_validity": 0.5,
-      "dab_score": 0.6567,
+      "dab_score": 0.6605,
       "total_tokens": 14065,
       "num_steps": 15
     },
@@ -215,6 +235,21 @@
       "num_steps": 8
     },
     {
+      "task_id": "feat_002",
+      "title": "Categorical Encoding & Feature Selection for Employee Attrition",
+      "difficulty": "medium",
+      "category": "feature_engineering",
+      "model": "gpt-4o-mini",
+      "run_at": "2026-04-09T14:44:50.711268+00:00",
+      "correctness": 0.75,
+      "code_quality": 0.8,
+      "efficiency": 1.0,
+      "stat_validity": 0.25,
+      "dab_score": 0.6975,
+      "total_tokens": 15544,
+      "num_steps": 17
+    },
+    {
       "task_id": "feat_003",
       "title": "Datetime Feature Extraction for Retail Sales",
       "difficulty": "medium",
@@ -243,6 +278,36 @@
       "dab_score": 0.8367,
       "total_tokens": 9817,
       "num_steps": 14
+    },
+    {
+      "task_id": "feat_003",
+      "title": "Datetime Feature Extraction for Retail Sales",
+      "difficulty": "medium",
+      "category": "feature_engineering",
+      "model": "gpt-4o-mini",
+      "run_at": "2026-04-09T14:46:36.813237+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.8571,
+      "efficiency": 1.0,
+      "stat_validity": 0.25,
+      "dab_score": 0.8214,
+      "total_tokens": 15194,
+      "num_steps": 18
+    },
+    {
+      "task_id": "feat_004",
+      "title": "Feature Importance & Selection Pipeline for Credit Risk",
+      "difficulty": "hard",
+      "category": "feature_engineering",
+      "model": "claude-sonnet-4-6",
+      "run_at": "2026-04-09T14:57:49.143443+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.8,
+      "efficiency": 0.1875,
+      "stat_validity": 0.75,
+      "dab_score": 0.7731,
+      "total_tokens": 147687,
+      "num_steps": 45
     },
     {
       "task_id": "feat_004",
