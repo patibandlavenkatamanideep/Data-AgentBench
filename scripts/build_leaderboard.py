@@ -11,8 +11,8 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
-from dataagentbench.core.registry import TaskRegistry
-from dataagentbench.scoring.composite import CompositeScorer
+from realdataagentbench.core.registry import TaskRegistry
+from realdataagentbench.scoring.composite import CompositeScorer
 
 
 def build(

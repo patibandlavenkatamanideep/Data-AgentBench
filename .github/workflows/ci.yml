@@ -28,7 +28,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest tests/ -v --cov=dataagentbench --cov-report=term-missing --cov-fail-under=80
+          pytest tests/ -v --cov=realdataagentbench --cov-report=term-missing --cov-fail-under=80
 
       - name: Upload coverage report
         if: matrix.python-version == '3.11'

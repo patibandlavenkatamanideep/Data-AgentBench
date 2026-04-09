@@ -19,7 +19,7 @@ Thank you for your interest in contributing! This guide explains how to add task
 
 ```
 RealDataAgentBench/
-├── dataagentbench/
+├── realdataagentbench/
 │   ├── core/              # Task schema (Pydantic) and registry
 │   ├── datasets/          # Dataset generators
 │   │   └── generators/    # One file per dataset type
@@ -102,10 +102,10 @@ Add a test in `tests/` that checks the generator produces expected schema and th
 
 ## Adding a new dataset generator
 
-Each generator is a Python module under `dataagentbench/datasets/generators/`.
+Each generator is a Python module under `realdataagentbench/datasets/generators/`.
 
 ```python
-# dataagentbench/datasets/generators/my_dataset.py
+# realdataagentbench/datasets/generators/my_dataset.py
 import numpy as np
 import pandas as pd
 
@@ -121,7 +121,7 @@ def generate(n_rows: int = 500, seed: int = 42) -> pd.DataFrame:
 - Column types must match the schema declared in the task YAML.
 - No external data files — everything generated in code.
 
-Then register it in `dataagentbench/datasets/__init__.py`:
+Then register it in `realdataagentbench/datasets/__init__.py`:
 
 ```python
 from .generators.my_dataset import generate as generate_my_dataset
@@ -144,7 +144,7 @@ pip install -e ".[dev]"
 pytest
 
 # Run with coverage
-pytest --cov=dataagentbench
+pytest --cov=realdataagentbench
 ```
 
 All 120+ tests are offline — they test schema validation, generator shapes, scoring logic, and CLI dry-runs. No LLM API calls are made in tests.

@@ -25,7 +25,7 @@ def _get_registry():
 
 
 @click.group()
-@click.version_option(package_name="dataagentbench")
+@click.version_option(package_name="realdataagentbench")
 def cli():
     """DataAgentBench — benchmark LLM agents on data science tasks."""
 

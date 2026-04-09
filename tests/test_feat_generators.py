@@ -5,13 +5,13 @@ import pandas as pd
 import pytest
 from pathlib import Path
 
-from dataagentbench.datasets.generators.house_prices import generate as gen_house
-from dataagentbench.datasets.generators.employee_attrition import generate as gen_attrition
-from dataagentbench.datasets.generators.retail_sales import generate as gen_retail
-from dataagentbench.datasets.generators.credit_risk import generate as gen_credit
-from dataagentbench.datasets.generators.fraud_detection import generate as gen_fraud
-from dataagentbench.core.registry import TaskRegistry
-from dataagentbench.datasets import get_generator
+from realdataagentbench.datasets.generators.house_prices import generate as gen_house
+from realdataagentbench.datasets.generators.employee_attrition import generate as gen_attrition
+from realdataagentbench.datasets.generators.retail_sales import generate as gen_retail
+from realdataagentbench.datasets.generators.credit_risk import generate as gen_credit
+from realdataagentbench.datasets.generators.fraud_detection import generate as gen_fraud
+from realdataagentbench.core.registry import TaskRegistry
+from realdataagentbench.datasets import get_generator
 
 TASKS_DIR = Path(__file__).parent.parent / "tasks"
 
@@ -183,7 +183,7 @@ class TestFeatTaskLoading:
 
     def test_registry_total_count(self):
         registry = TaskRegistry(TASKS_DIR)
-        assert len(registry) == 8  # 3 EDA + 5 feat
+        assert len(registry) == 18  # 3 EDA + 5 feat + 5 modeling + 5 stat_inference
 
     def test_filter_by_category(self):
         registry = TaskRegistry(TASKS_DIR)

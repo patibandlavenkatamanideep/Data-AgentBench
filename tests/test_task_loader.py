@@ -4,8 +4,8 @@ import pytest
 from pathlib import Path
 from pydantic import ValidationError
 
-from dataagentbench.core.task import TaskSchema
-from dataagentbench.core.registry import TaskRegistry
+from realdataagentbench.core.task import TaskSchema
+from realdataagentbench.core.registry import TaskRegistry
 
 TASKS_DIR = Path(__file__).parent.parent / "tasks"
 
@@ -124,7 +124,7 @@ class TestValidationRejection:
 class TestRegistry:
     def test_registry_loads_all(self):
         registry = TaskRegistry(TASKS_DIR)
-        assert len(registry) == 8  # 3 EDA + 5 feature_engineering
+        assert len(registry) == 18  # 3 EDA + 5 feat + 5 modeling + 5 stat
 
     def test_registry_get(self):
         registry = TaskRegistry(TASKS_DIR)
@@ -152,7 +152,7 @@ class TestRegistry:
     def test_registry_summary(self):
         registry = TaskRegistry(TASKS_DIR)
         summary = registry.summary()
-        assert summary["total"] == 8
+        assert summary["total"] == 18
         assert summary["by_category"]["eda"] == 3
         assert summary["by_category"]["feature_engineering"] == 5
 

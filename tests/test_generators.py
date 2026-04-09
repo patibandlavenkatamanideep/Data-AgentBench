@@ -4,10 +4,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from dataagentbench.datasets.generators.income_distribution import generate as gen_income
-from dataagentbench.datasets.generators.patient_records import generate as gen_patient
-from dataagentbench.datasets.generators.ecommerce_transactions import generate as gen_ecommerce
-from dataagentbench.datasets import get_generator, GENERATORS
+from realdataagentbench.datasets.generators.income_distribution import generate as gen_income
+from realdataagentbench.datasets.generators.patient_records import generate as gen_patient
+from realdataagentbench.datasets.generators.ecommerce_transactions import generate as gen_ecommerce
+from realdataagentbench.datasets import get_generator, GENERATORS
 
 
 class TestIncomeGenerator:

@@ -144,7 +144,7 @@ Weights are defined per-task in the YAML. The final RDAB Score is their weighted
 ## Project Structure
 
 ```
-dataagentbench/
+realdataagentbench/
 ├── core/
 │   ├── task.py           # Pydantic schema — validates every YAML field
 │   └── registry.py       # Discovers, loads, and filters tasks
@@ -181,8 +181,8 @@ docs/
 ## Adding a New Task
 
 1. Create `tasks/<category>/<task_id>.yaml` following [TASK_SPEC.md](TASK_SPEC.md)
-2. Add a seeded generator in `dataagentbench/datasets/generators/`
-3. Register it in `dataagentbench/datasets/__init__.py`
+2. Add a seeded generator in `realdataagentbench/datasets/generators/`
+3. Register it in `realdataagentbench/datasets/__init__.py`
 4. Add tests in `tests/`
 5. Run `pytest tests/ -v` — all 120 must pass before opening a PR
 
@@ -199,7 +199,7 @@ pip install -e ".[dev]"
 pytest tests/ -v
 
 # With coverage
-pytest tests/ --cov=dataagentbench --cov-report=term-missing
+pytest tests/ --cov=realdataagentbench --cov-report=term-missing
 ```
 
 ---

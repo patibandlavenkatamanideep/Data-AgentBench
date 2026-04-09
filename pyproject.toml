@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "dataagentbench"
+name = "realdataagentbench"
 version = "0.1.0"
 description = "A benchmark for evaluating LLM agents on data science tasks"
 readme = "README.md"
@@ -30,15 +30,15 @@ dev = [
 ]
 
 [project.scripts]
-dab = "dataagentbench.cli:cli"
+dab = "realdataagentbench.cli:cli"
 
 [tool.hatch.build.targets.wheel]
-packages = ["dataagentbench"]
+packages = ["realdataagentbench"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--tb=short"
 
 [tool.coverage.run]
-source = ["dataagentbench"]
+source = ["realdataagentbench"]
 omit = ["tests/*"]

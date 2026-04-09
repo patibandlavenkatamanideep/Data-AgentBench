@@ -6,7 +6,7 @@ on:
     paths:
       - 'outputs/**'
       - 'scripts/build_leaderboard.py'
-      - 'dataagentbench/scoring/**'
+      - 'realdataagentbench/scoring/**'
 
 permissions:
   contents: write

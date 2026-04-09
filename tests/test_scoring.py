@@ -3,12 +3,12 @@
 import pytest
 from pathlib import Path
 
-from dataagentbench.core.registry import TaskRegistry
-from dataagentbench.scoring.correctness import CorrectnessScorer
-from dataagentbench.scoring.code_quality import CodeQualityScorer
-from dataagentbench.scoring.efficiency import EfficiencyScorer
-from dataagentbench.scoring.stat_validity import StatValidityScorer
-from dataagentbench.scoring.composite import CompositeScorer, ScoreCard
+from realdataagentbench.core.registry import TaskRegistry
+from realdataagentbench.scoring.correctness import CorrectnessScorer
+from realdataagentbench.scoring.code_quality import CodeQualityScorer
+from realdataagentbench.scoring.efficiency import EfficiencyScorer
+from realdataagentbench.scoring.stat_validity import StatValidityScorer
+from realdataagentbench.scoring.composite import CompositeScorer, ScoreCard
 
 TASKS_DIR = Path(__file__).parent.parent / "tasks"
 
