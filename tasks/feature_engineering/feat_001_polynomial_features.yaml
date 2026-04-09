@@ -54,7 +54,7 @@ scoring:
   stat_validity_weight: 0.15
 
 evaluation:
-  max_steps: 12
+  max_steps: 20
   timeout_seconds: 120
   allowed_tools:
     - run_code
