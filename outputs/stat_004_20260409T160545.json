@@ -1,0 +1,35 @@
+{
+  "task_id": "stat_004",
+  "title": "Time Series Decomposition \u2014 Sales Trend & Seasonality",
+  "difficulty": "medium",
+  "category": "statistical_inference",
+  "model": "gpt-4o",
+  "run_at": "2026-04-09T16:05:45.335629+00:00",
+  "dataset_shape": [
+    730,
+    6
+  ],
+  "trace": {
+    "task_id": "stat_004",
+    "model": "gpt-4o",
+    "final_answer": "",
+    "total_input_tokens": 394,
+    "total_output_tokens": 11,
+    "total_elapsed_seconds": 1.395,
+    "num_steps": 1,
+    "error": "Object of type Timestamp is not JSON serializable",
+    "steps": [
+      {
+        "step": 1,
+        "role": "assistant",
+        "content": "",
+        "tool_name": null,
+        "tool_input": null,
+        "tool_output": null,
+        "input_tokens": 394,
+        "output_tokens": 11,
+        "elapsed_seconds": 1.395
+      }
+    ]
+  }
+}

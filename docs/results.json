@@ -1,15 +1,10 @@
 {
-  "generated_at": "2026-04-09T14:59:23.218341+00:00",
-  "total_runs": 21,
+  "generated_at": "2026-04-09T16:08:44.362873+00:00",
+  "total_runs": 38,
   "model_summary": [
     {
       "model": "claude-sonnet-4-6",
-      "avg_dab_score": 0.8071,
-      "tasks_run": 7
-    },
-    {
-      "model": "gpt-4o",
-      "avg_dab_score": 0.7823,
+      "avg_dab_score": 0.7995,
       "tasks_run": 8
     },
     {
@@ -18,9 +13,14 @@
       "tasks_run": 5
     },
     {
+      "model": "gpt-4o",
+      "avg_dab_score": 0.7793,
+      "tasks_run": 17
+    },
+    {
       "model": "haiku",
-      "avg_dab_score": 0.2396,
-      "tasks_run": 1
+      "avg_dab_score": 0.7632,
+      "tasks_run": 8
     }
   ],
   "runs": [
@@ -75,14 +75,14 @@
       "difficulty": "easy",
       "category": "eda",
       "model": "haiku",
-      "run_at": "2026-04-09T14:57:21.438746+00:00",
-      "correctness": 0.0,
-      "code_quality": 0.8286,
-      "efficiency": 0.2422,
-      "stat_validity": 0.25,
-      "dab_score": 0.2396,
-      "total_tokens": 37185,
-      "num_steps": 17
+      "run_at": "2026-04-09T15:19:29.390512+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.68,
+      "efficiency": 0.8969,
+      "stat_validity": 1.0,
+      "dab_score": 0.9205,
+      "total_tokens": 23435,
+      "num_steps": 14
     },
     {
       "task_id": "eda_002",
@@ -130,6 +130,21 @@
       "num_steps": 32
     },
     {
+      "task_id": "eda_002",
+      "title": "Patient Records \u2014 Missing Data & Outlier Audit",
+      "difficulty": "medium",
+      "category": "eda",
+      "model": "haiku",
+      "run_at": "2026-04-09T15:22:06.023860+00:00",
+      "correctness": 0.6667,
+      "code_quality": 0.76,
+      "efficiency": 0.155,
+      "stat_validity": 0.75,
+      "dab_score": 0.6253,
+      "total_tokens": 118987,
+      "num_steps": 29
+    },
+    {
       "task_id": "eda_003",
       "title": "E-Commerce Confounding Variable Detection",
       "difficulty": "hard",
@@ -175,6 +190,21 @@
       "num_steps": 21
     },
     {
+      "task_id": "eda_003",
+      "title": "E-Commerce Confounding Variable Detection",
+      "difficulty": "hard",
+      "category": "eda",
+      "model": "haiku",
+      "run_at": "2026-04-09T15:24:41.790100+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.68,
+      "efficiency": 0.192,
+      "stat_validity": 1.0,
+      "dab_score": 0.8308,
+      "total_tokens": 109356,
+      "num_steps": 27
+    },
+    {
       "task_id": "feat_001",
       "title": "Polynomial Feature Engineering for House Prices",
       "difficulty": "easy",
@@ -203,6 +233,21 @@
       "dab_score": 0.6605,
       "total_tokens": 14065,
       "num_steps": 15
+    },
+    {
+      "task_id": "feat_001",
+      "title": "Polynomial Feature Engineering for House Prices",
+      "difficulty": "easy",
+      "category": "feature_engineering",
+      "model": "haiku",
+      "run_at": "2026-04-09T15:26:40.908498+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.72,
+      "efficiency": 0.185,
+      "stat_validity": 0.5,
+      "dab_score": 0.7468,
+      "total_tokens": 62821,
+      "num_steps": 23
     },
     {
       "task_id": "feat_002",
@@ -250,6 +295,21 @@
       "num_steps": 17
     },
     {
+      "task_id": "feat_002",
+      "title": "Categorical Encoding & Feature Selection for Employee Attrition",
+      "difficulty": "medium",
+      "category": "feature_engineering",
+      "model": "haiku",
+      "run_at": "2026-04-09T15:31:08.267547+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.65,
+      "efficiency": 0.1567,
+      "stat_validity": 0.25,
+      "dab_score": 0.6535,
+      "total_tokens": 235085,
+      "num_steps": 43
+    },
+    {
       "task_id": "feat_003",
       "title": "Datetime Feature Extraction for Retail Sales",
       "difficulty": "medium",
@@ -295,19 +355,34 @@
       "num_steps": 18
     },
     {
+      "task_id": "feat_003",
+      "title": "Datetime Feature Extraction for Retail Sales",
+      "difficulty": "medium",
+      "category": "feature_engineering",
+      "model": "haiku",
+      "run_at": "2026-04-09T15:33:05.578792+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.88,
+      "efficiency": 0.863,
+      "stat_validity": 0.5,
+      "dab_score": 0.8554,
+      "total_tokens": 61413,
+      "num_steps": 23
+    },
+    {
       "task_id": "feat_004",
       "title": "Feature Importance & Selection Pipeline for Credit Risk",
       "difficulty": "hard",
       "category": "feature_engineering",
       "model": "claude-sonnet-4-6",
-      "run_at": "2026-04-09T14:57:49.143443+00:00",
+      "run_at": "2026-04-09T15:09:55.698084+00:00",
       "correctness": 1.0,
-      "code_quality": 0.8,
-      "efficiency": 0.1875,
+      "code_quality": 0.8971,
+      "efficiency": 0.1175,
       "stat_validity": 0.75,
-      "dab_score": 0.7731,
-      "total_tokens": 147687,
-      "num_steps": 45
+      "dab_score": 0.7772,
+      "total_tokens": 375920,
+      "num_steps": 73
     },
     {
       "task_id": "feat_004",
@@ -325,6 +400,36 @@
       "num_steps": 19
     },
     {
+      "task_id": "feat_004",
+      "title": "Feature Importance & Selection Pipeline for Credit Risk",
+      "difficulty": "hard",
+      "category": "feature_engineering",
+      "model": "haiku",
+      "run_at": "2026-04-09T15:39:44.552936+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.6444,
+      "efficiency": 0.1575,
+      "stat_validity": 0.75,
+      "dab_score": 0.7453,
+      "total_tokens": 358592,
+      "num_steps": 57
+    },
+    {
+      "task_id": "feat_005",
+      "title": "Feature Engineering for Imbalanced Fraud Detection",
+      "difficulty": "hard",
+      "category": "feature_engineering",
+      "model": "claude-sonnet-4-6",
+      "run_at": "2026-04-09T15:17:54.218785+00:00",
+      "correctness": 0.75,
+      "code_quality": 0.7833,
+      "efficiency": 0.1625,
+      "stat_validity": 1.0,
+      "dab_score": 0.7419,
+      "total_tokens": 246682,
+      "num_steps": 55
+    },
+    {
       "task_id": "feat_005",
       "title": "Feature Engineering for Imbalanced Fraud Detection",
       "difficulty": "hard",
@@ -338,6 +443,156 @@
       "dab_score": 0.8025,
       "total_tokens": 8618,
       "num_steps": 10
+    },
+    {
+      "task_id": "feat_005",
+      "title": "Feature Engineering for Imbalanced Fraud Detection",
+      "difficulty": "hard",
+      "category": "feature_engineering",
+      "model": "haiku",
+      "run_at": "2026-04-09T15:51:05.500626+00:00",
+      "correctness": 0.75,
+      "code_quality": 0.7188,
+      "efficiency": 0.1325,
+      "stat_validity": 1.0,
+      "dab_score": 0.7277,
+      "total_tokens": 608861,
+      "num_steps": 67
+    },
+    {
+      "task_id": "model_001",
+      "title": "Logistic Regression for Diabetes Prediction",
+      "difficulty": "easy",
+      "category": "modeling",
+      "model": "gpt-4o",
+      "run_at": "2026-04-09T15:52:49.843639+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.8,
+      "efficiency": 1.0,
+      "stat_validity": 0.25,
+      "dab_score": 0.7725,
+      "total_tokens": 14866,
+      "num_steps": 13
+    },
+    {
+      "task_id": "model_002",
+      "title": "Random Forest Classifier for Wine Quality",
+      "difficulty": "medium",
+      "category": "modeling",
+      "model": "gpt-4o",
+      "run_at": "2026-04-09T15:54:33.197698+00:00",
+      "correctness": 0.0,
+      "code_quality": 0.68,
+      "efficiency": 1.0,
+      "stat_validity": 0.25,
+      "dab_score": 0.327,
+      "total_tokens": 17084,
+      "num_steps": 13
+    },
+    {
+      "task_id": "model_003",
+      "title": "Ridge vs Lasso Regression for Student Performance",
+      "difficulty": "medium",
+      "category": "modeling",
+      "model": "gpt-4o",
+      "run_at": "2026-04-09T15:56:16.793044+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.75,
+      "efficiency": 1.0,
+      "stat_validity": 0.25,
+      "dab_score": 0.7375,
+      "total_tokens": 13900,
+      "num_steps": 11
+    },
+    {
+      "task_id": "model_004",
+      "title": "Gradient Boosting for Customer Churn Prediction",
+      "difficulty": "hard",
+      "category": "modeling",
+      "model": "gpt-4o",
+      "run_at": "2026-04-09T15:57:52.436702+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.7333,
+      "efficiency": 1.0,
+      "stat_validity": 0.25,
+      "dab_score": 0.735,
+      "total_tokens": 15704,
+      "num_steps": 15
+    },
+    {
+      "task_id": "model_005",
+      "title": "Multi-Model Regression Pipeline for Energy Consumption",
+      "difficulty": "hard",
+      "category": "modeling",
+      "model": "gpt-4o",
+      "run_at": "2026-04-09T15:59:37.706931+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.75,
+      "efficiency": 1.0,
+      "stat_validity": 0.5,
+      "dab_score": 0.8125,
+      "total_tokens": 14677,
+      "num_steps": 11
+    },
+    {
+      "task_id": "stat_001",
+      "title": "A/B Test Analysis \u2014 Conversion Rate Experiment",
+      "difficulty": "easy",
+      "category": "statistical_inference",
+      "model": "gpt-4o",
+      "run_at": "2026-04-09T16:01:20.105137+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.9143,
+      "efficiency": 1.0,
+      "stat_validity": 0.75,
+      "dab_score": 0.9121,
+      "total_tokens": 15621,
+      "num_steps": 16
+    },
+    {
+      "task_id": "stat_002",
+      "title": "Clinical Trial \u2014 Drug Efficacy Hypothesis Test",
+      "difficulty": "medium",
+      "category": "statistical_inference",
+      "model": "gpt-4o",
+      "run_at": "2026-04-09T16:02:59.122653+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.9,
+      "efficiency": 1.0,
+      "stat_validity": 0.75,
+      "dab_score": 0.8975,
+      "total_tokens": 11822,
+      "num_steps": 14
+    },
+    {
+      "task_id": "stat_003",
+      "title": "Salary Gap Analysis \u2014 Controlling for Confounders",
+      "difficulty": "hard",
+      "category": "statistical_inference",
+      "model": "gpt-4o",
+      "run_at": "2026-04-09T16:04:33.025261+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.8,
+      "efficiency": 1.0,
+      "stat_validity": 0.75,
+      "dab_score": 0.8825,
+      "total_tokens": 11657,
+      "num_steps": 16
+    },
+    {
+      "task_id": "stat_005",
+      "title": "Statistical Process Control \u2014 Manufacturing Defect Analysis",
+      "difficulty": "hard",
+      "category": "statistical_inference",
+      "model": "gpt-4o",
+      "run_at": "2026-04-09T16:07:20.650261+00:00",
+      "correctness": 1.0,
+      "code_quality": 1.0,
+      "efficiency": 1.0,
+      "stat_validity": 0.75,
+      "dab_score": 0.9125,
+      "total_tokens": 18210,
+      "num_steps": 24
     }
   ]
 }
