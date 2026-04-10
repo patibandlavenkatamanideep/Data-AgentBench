@@ -3,6 +3,10 @@
 </p>
 
 <p align="center">
+  <strong>Forces LLM agents to think like real statisticians — not just get the right number.</strong>
+</p>
+
+<p align="center">
   <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench/actions"><img src="https://github.com/patibandlavenkatamanideep/RealDataAgentBench/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/tests-150%20passing-brightgreen" alt="Tests"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python"></a>
@@ -10,13 +14,13 @@
   <a href="https://patibandlavenkatamanideep.github.io/RealDataAgentBench/"><img src="https://img.shields.io/badge/leaderboard-live-brightgreen" alt="Leaderboard"></a>
 </p>
 
-> **The benchmark that forces LLM agents to think like real statisticians — not just get the right number.**
-
-This benchmark forces LLM agents to think like real statisticians, not just copy answers. It measures four things most benchmarks ignore: whether the agent's code is production-quality, whether it uses the right statistical methods, whether it works efficiently, and whether it actually gets the right answer.
+> Built with guidance from Grok (xAI) and Claude Sonnet.
 
 - **23 tasks** across EDA, Feature Engineering, Modeling, Statistical Inference, and ML Engineering — including data leakage, calibration, nested CV, and ensemble methods
 - **4 models benchmarked**: Claude Sonnet, GPT-4o, GPT-4o-mini, Claude Haiku — real scores from real API runs, with per-run cost in USD
 - **4-dimension scoring**: Correctness · Code Quality · Efficiency · Statistical Validity — so you know exactly *where* each model wins or fails
+
+Companies save real money by choosing the right model for real data science work.
 
 ---
 

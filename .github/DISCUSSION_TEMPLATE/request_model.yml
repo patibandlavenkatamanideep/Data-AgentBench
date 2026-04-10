@@ -1,0 +1,15 @@
+title: "[Model request] "
+labels:
+  - new-model
+body: |
+  **Which model would you like added?**
+  (e.g. Grok-3, Gemini 1.5 Pro, Llama 3 via Together AI, Mistral Large)
+
+  **Why is it interesting for this benchmark?**
+  (Free tier? Cheap? Strong at statistical reasoning?)
+
+  **API documentation:**
+  (Link to pricing / API docs if you have it)
+
+  **Would you like to open a PR?**
+  CONTRIBUTING.md has step-by-step instructions — adding an OpenAI-compatible provider takes ~10 min.

@@ -1,0 +1,58 @@
+name: "Request a new model"
+description: "Ask for a new LLM provider to be added to the benchmark."
+title: "[Model] "
+labels: ["new-model", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for requesting a new model! Adding one usually takes ~20 lines of code.
+        See [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md#add-a-new-model-provider) for the pattern.
+
+  - type: input
+    id: model_name
+    attributes:
+      label: Model name / provider
+      description: "e.g. Grok-3 (xAI), Gemini 1.5 Pro (Google), Llama 3 via Together AI"
+      placeholder: "Model name"
+    validations:
+      required: true
+
+  - type: input
+    id: api_url
+    attributes:
+      label: API documentation URL
+      description: "Link to the provider's API docs or pricing page"
+      placeholder: "https://..."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: api_compatible
+    attributes:
+      label: Is the API OpenAI-compatible?
+      description: "If yes, adding it takes ~10 lines. If no, we need a custom provider."
+      options:
+        - "Yes — OpenAI-compatible endpoint"
+        - "No — custom SDK required"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: Why this model?
+      description: "Is it free-tier? Cheaper? Faster? Better for a specific task type?"
+      placeholder: "e.g. Free tier, good for SMBs that can't afford GPT-4o"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: willing_to_pr
+    attributes:
+      label: Would you like to open a PR?
+      description: "CONTRIBUTING.md has step-by-step instructions — it really is ~10 min."
+      options:
+        - label: "Yes, I'll open a PR"
+        - label: "No, I'd like someone else to implement it"

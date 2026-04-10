@@ -1,0 +1,16 @@
+title: "[Task request] "
+labels:
+  - new-task
+body: |
+  **What task would you like added?**
+  (e.g. "Time-series stationarity testing", "Detecting p-hacking in A/B tests")
+
+  **Which category?**
+  eda / feature_engineering / modeling / statistical_inference / ml_engineering
+
+  **What statistical mistake does it catch?**
+  Good tasks expose something agents commonly get wrong — spurious correlation, data leakage,
+  wrong test choice, etc.
+
+  **Would you like to open a PR?**
+  CONTRIBUTING.md has step-by-step instructions — a new task is one YAML file and ~10 min of work.

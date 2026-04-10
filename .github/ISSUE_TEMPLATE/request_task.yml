@@ -1,0 +1,75 @@
+name: "Request a new task"
+description: "Suggest a new data science benchmark task to add."
+title: "[Task] "
+labels: ["new-task", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a task! A good task tests something real:
+        a statistical concept agents often get wrong, or a code-quality trap.
+        See [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md#add-a-new-task) for the YAML format.
+
+  - type: input
+    id: task_title
+    attributes:
+      label: Task title
+      description: "Short, descriptive — e.g. 'Multicollinearity Detection in Regression'"
+      placeholder: "Task title"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - "eda"
+        - "feature_engineering"
+        - "modeling"
+        - "statistical_inference"
+        - "ml_engineering"
+        - "new category (describe below)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: difficulty
+    attributes:
+      label: Difficulty
+      options:
+        - "easy"
+        - "medium"
+        - "hard"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Task description
+      description: "What should the agent compute or detect? What ground truth would you check?"
+      placeholder: |
+        e.g. "Given a dataset with correlated features, the agent should:
+        1. Detect which pairs have VIF > 10
+        2. Recommend which to drop
+        3. Report the correlation matrix"
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why is this a good benchmark task?
+      description: "What statistical or engineering mistake does it catch? What do models commonly get wrong here?"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: willing_to_pr
+    attributes:
+      label: Would you like to open a PR?
+      description: "CONTRIBUTING.md has step-by-step instructions. Adding a task takes ~10 min."
+      options:
+        - label: "Yes, I'll open a PR"
+        - label: "No, I'd like someone else to implement it"
