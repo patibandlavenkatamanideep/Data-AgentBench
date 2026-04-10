@@ -48,13 +48,15 @@ An agent can score **1.0 on correctness and 0.2 on statistical validity** — an
 
 ---
 
-## Key Findings
+---
+
+## 🔍 Key Findings
 
 From 163 runs across 10 models and 23 tasks — patterns observed in actual benchmark output, not hypothetical.
 
 ---
 
-> **Insight 1 — Statistical validity is the universal weak point**
+> **💡 Insight 1: Statistical validity is the universal weak point**
 >
 > Every model, including GPT-5 and Claude Opus, scores **0.25 on statistical validity** for `feat_002`, `feat_003`, `model_001`, and `model_002` — while scoring 0.83–1.00 on correctness for the same tasks. Models compute the right numbers but skip uncertainty reporting, omit confidence ranges, and treat point estimates as conclusions.
 >
@@ -62,7 +64,7 @@ From 163 runs across 10 models and 23 tasks — patterns observed in actual benc
 
 ---
 
-> **Insight 2 — No single model dominates across categories**
+> **💡 Insight 2: No single model dominates across categories**
 >
 > | Category | Best Model | Avg RDAB |
 > |----------|-----------|:--------:|
@@ -78,7 +80,7 @@ From 163 runs across 10 models and 23 tasks — patterns observed in actual benc
 
 ---
 
-> **Insight 3 — Claude models massively over-spend tokens**
+> **💡 Insight 3: Claude models massively over-spend tokens**
 >
 > Claude Haiku: **608,861 tokens** on `feat_005` (efficiency = 0.13). Claude Sonnet: **375,920 tokens** on `feat_004`. GPT-4.1 and Llama completed the same tasks in under 30,000 tokens with higher correctness. The Anthropic models explore more — but conclude less efficiently.
 >
@@ -86,7 +88,7 @@ From 163 runs across 10 models and 23 tasks — patterns observed in actual benc
 
 ---
 
-> **Insight 4 — grok-3-mini has a hard sklearn blind spot**
+> **💡 Insight 4: grok-3-mini has a hard sklearn blind spot**
 >
 > Grok-3-mini scores **correctness = 0.00** on 7 of 23 tasks — every one involving sklearn. The model retried failed imports and returned empty answers rather than adapting to the pre-injected namespace. Its 0.626 overall score hides a bimodal distribution: near-perfect on EDA, zero on anything requiring a trained model.
 >
@@ -94,7 +96,7 @@ From 163 runs across 10 models and 23 tasks — patterns observed in actual benc
 
 ---
 
-> **Insight 5 — GPT-4.1 is the most cost-efficient serious contender**
+> **💡 Insight 5: GPT-4.1 is the most cost-efficient serious contender**
 >
 > GPT-4.1 leads EDA, Feature Engineering, and Statistical Inference outright — at **$0.038/task** vs GPT-5's $0.596. That's 15× cheaper for ~98% of the output quality. For teams running hundreds of analysis tasks a week, the difference compounds fast.
 >
@@ -144,6 +146,16 @@ Gemini 2.5 Flash produces structurally correct code but truncates its final answ
 *\*Score / $ = Avg RDAB Score ÷ Avg Cost per task. Higher = more value per dollar.*
 
 > Live leaderboard with per-task breakdowns and category filters: [patibandlavenkatamanideep.github.io/RealDataAgentBench](https://patibandlavenkatamanideep.github.io/RealDataAgentBench/)
+
+---
+
+## 🧠 What this means
+
+Three conclusions that hold across all 163 runs:
+
+- **High correctness does not imply reliable analysis** — a model can score 1.0 on correctness and 0.25 on statistical validity on the same task. Getting the number right is necessary but not sufficient.
+- **Model selection should be category-driven, not ranking-driven** — the #1 overall model loses to a free Groq model on modeling tasks. Aggregate leaderboard position is a starting point, not a decision.
+- **Cost-performance tradeoffs are large enough to change production architecture** — GPT-4.1 delivers near-identical quality to GPT-5 at 15× lower cost. At scale, that gap determines whether agentic data workflows are economically viable.
 
 ---
 
