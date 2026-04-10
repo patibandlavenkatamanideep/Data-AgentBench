@@ -15,7 +15,7 @@ release only.
 
 Report security issues privately by emailing:
 
-> venkatamanideep20@gamil.com
+> venkatamanideep20@gmail.com
 
 Include in your report:
 - A description of the vulnerability and its potential impact

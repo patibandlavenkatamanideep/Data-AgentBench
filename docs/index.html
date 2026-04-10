@@ -4,58 +4,174 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RealDataAgentBench — Leaderboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --border: #2a2d3a;
-      --text: #e2e4ed;
-      --muted: #6b7280;
-      --accent: #6366f1;
-      --accent-dim: #3730a3;
-      --green: #22c55e;
-      --yellow: #eab308;
-      --red: #ef4444;
-      --easy: #22c55e;
-      --medium: #eab308;
-      --hard: #ef4444;
+      /* Palette #1 — AI Infra / Research */
+      --bg:          #F8FAFC;
+      --surface:     #FFFFFF;
+      --surface-2:   #F1F5F9;
+      --border:      #E2E8F0;
+      --border-2:    #CBD5E1;
+      --primary:     #0F172A;
+      --secondary:   #1E293B;
+      --muted:       #64748B;
+      --muted-light: #94A3B8;
+      --accent:      #3B82F6;
+      --accent-dim:  #EFF6FF;
+      --accent-dark: #1D4ED8;
+      --green:       #22C55E;
+      --green-bg:    #F0FDF4;
+      --green-dark:  #15803D;
+      --yellow:      #F59E0B;
+      --yellow-bg:   #FFFBEB;
+      --yellow-dark: #B45309;
+      --red:         #EF4444;
+      --red-bg:      #FEF2F2;
+      --red-dark:    #B91C1C;
+      --cyan:        #06B6D4;
+      --cyan-bg:     #ECFEFF;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: var(--bg);
-      color: var(--text);
+      color: var(--primary);
       min-height: 100vh;
+      /* subtle grid background */
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      background-attachment: fixed;
     }
 
+    /* ── Header ─────────────────────────────────────── */
     header {
+      background: var(--surface);
       border-bottom: 1px solid var(--border);
       padding: 2rem 2rem 1.5rem;
+    }
+
+    .header-inner {
       max-width: 1200px;
       margin: 0 auto;
     }
 
-    header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; }
+    header h1 {
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--primary);
+    }
+
     header h1 span { color: var(--accent); }
-    header p { color: var(--muted); margin-top: 0.4rem; font-size: 0.95rem; }
+
+    header p {
+      color: var(--muted);
+      margin-top: 0.35rem;
+      font-size: 0.92rem;
+      font-weight: 400;
+    }
 
     .meta {
       display: flex;
       gap: 1.5rem;
+      flex-wrap: wrap;
       margin-top: 1rem;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--muted);
+      font-weight: 500;
     }
-    .meta span { display: flex; align-items: center; gap: 0.3rem; }
 
-    main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+    .meta .pill {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+    }
 
-    /* Model summary cards */
+    .meta a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      background: var(--accent-dim);
+      border: 1px solid #BFDBFE;
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+    }
+
+    .meta a:hover { background: #DBEAFE; }
+
+    /* ── Layout ─────────────────────────────────────── */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem;
+    }
+
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 0.85rem;
+    }
+
+    /* ── Insight boxes ──────────────────────────────── */
+    .insights {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .insight-box {
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      border: 1px solid;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+    }
+
+    .insight-box.blue   { background: var(--accent-dim); border-color: #BFDBFE; }
+    .insight-box.green  { background: var(--green-bg);   border-color: #BBF7D0; }
+    .insight-box.yellow { background: var(--yellow-bg);  border-color: #FDE68A; }
+
+    .insight-icon {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .insight-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 0.3rem;
+    }
+
+    .insight-box.blue   .insight-title { color: var(--accent-dark); }
+    .insight-box.green  .insight-title { color: var(--green-dark); }
+    .insight-box.yellow .insight-title { color: var(--yellow-dark); }
+
+    .insight-body {
+      font-size: 0.82rem;
+      color: var(--secondary);
+      line-height: 1.5;
+    }
+
+    /* ── Model cards ────────────────────────────────── */
     .model-cards {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
       gap: 1rem;
       margin-bottom: 2.5rem;
     }
@@ -63,28 +179,150 @@
     .model-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.2rem 1.4rem;
+      border-radius: 12px;
+      padding: 1.25rem 1.4rem;
+      transition: box-shadow 0.15s, border-color 0.15s;
     }
 
-    .model-card .rank { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-    .model-card .name { font-size: 0.95rem; font-weight: 600; margin: 0.3rem 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .model-card .score { font-size: 2rem; font-weight: 700; color: var(--accent); }
-    .model-card .tasks-run { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
-    .model-card .avg-cost { font-size: 0.78rem; color: var(--green); margin-top: 0.15rem; }
+    .model-card:hover {
+      box-shadow: 0 4px 16px rgba(15,23,42,0.08);
+      border-color: var(--border-2);
+    }
 
-    .section-title {
-      font-size: 0.8rem;
+    .model-card.top-card {
+      border-color: #BFDBFE;
+      background: linear-gradient(135deg, #F0F7FF 0%, #FFFFFF 100%);
+    }
+
+    .model-card .rank {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--muted-light);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    .model-card .name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin: 0.3rem 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .model-card .score {
+      font-size: 2rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+      margin-bottom: 0.1rem;
+    }
+
+    .score-high { color: var(--green-dark); }
+    .score-mid  { color: var(--yellow-dark); }
+    .score-low  { color: var(--red-dark); }
+
+    .model-card .tasks-run {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+
+    .model-card .avg-cost {
+      font-size: 0.75rem;
+      color: var(--accent-dark);
+      font-weight: 500;
+      margin-top: 0.1rem;
+    }
+
+    /* ── Quick Snapshot table ───────────────────────── */
+    .snapshot-wrap {
+      background: var(--surface);
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 1px 4px rgba(15,23,42,0.04);
+    }
+
+    .snapshot-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+
+    .snapshot-table thead th {
+      background: var(--surface-2);
+      padding: 0.65rem 1rem;
+      text-align: left;
+      font-size: 0.7rem;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--muted);
-      margin-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
     }
 
-    /* Filters */
+    .snapshot-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+
+    .snapshot-table tbody tr:last-child { border-bottom: none; }
+    .snapshot-table tbody tr:hover { background: var(--surface-2); }
+    .snapshot-table td { padding: 0.65rem 1rem; white-space: nowrap; }
+
+    .snap-rank  { color: var(--muted-light); font-size: 0.78rem; font-weight: 700; width: 40px; }
+    .snap-model {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .snap-bar-wrap { display: flex; align-items: center; gap: 0.6rem; min-width: 140px; }
+    .snap-bar {
+      flex: 1;
+      height: 7px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .snap-bar-fill { height: 100%; border-radius: 99px; }
+    .snap-bar-fill.high { background: var(--green); }
+    .snap-bar-fill.mid  { background: var(--yellow); }
+    .snap-bar-fill.low  { background: var(--red); }
+
+    .snap-score-val {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      font-size: 0.85rem;
+      min-width: 38px;
+    }
+
+    .snap-tasks { color: var(--muted); font-size: 0.78rem; }
+    .snap-cost  { font-variant-numeric: tabular-nums; font-size: 0.78rem; font-weight: 500; color: var(--secondary); }
+
+    .tag {
+      display: inline-block;
+      padding: 0.12rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      margin-left: 0.4rem;
+      letter-spacing: 0.03em;
+    }
+
+    .tag-best  { background: var(--green-bg);   color: var(--green-dark);  border: 1px solid #BBF7D0; }
+    .tag-value { background: var(--yellow-bg);  color: var(--yellow-dark); border: 1px solid #FDE68A; }
+    .tag-cheap { background: var(--cyan-bg);    color: #0E7490;            border: 1px solid #A5F3FC; }
+
+    /* ── Filters ────────────────────────────────────── */
     .filters {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.4rem;
       flex-wrap: wrap;
       margin-bottom: 1rem;
     }
@@ -92,37 +330,56 @@
     .filter-btn {
       background: var(--surface);
       border: 1px solid var(--border);
-      color: var(--text);
-      padding: 0.35rem 0.9rem;
+      color: var(--muted);
+      padding: 0.32rem 0.85rem;
       border-radius: 6px;
-      font-size: 0.82rem;
+      font-size: 0.78rem;
+      font-weight: 500;
       cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
+      transition: all 0.12s;
+      font-family: inherit;
     }
 
-    .filter-btn:hover, .filter-btn.active {
+    .filter-btn:hover {
       border-color: var(--accent);
+      color: var(--accent);
       background: var(--accent-dim);
-      color: #fff;
     }
 
-    /* Table */
+    .filter-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .divider {
+      width: 1px;
+      background: var(--border);
+      margin: 0 0.2rem;
+      align-self: stretch;
+      display: inline-block;
+    }
+
+    /* ── Main table ─────────────────────────────────── */
     .table-wrap {
+      background: var(--surface);
       overflow-x: auto;
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(15,23,42,0.04);
     }
 
-    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 
     thead th {
-      background: var(--surface);
-      padding: 0.75rem 0.8rem;
+      background: var(--surface-2);
+      padding: 0.7rem 0.85rem;
       text-align: left;
-      font-weight: 600;
-      font-size: 0.75rem;
+      font-weight: 700;
+      font-size: 0.7rem;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
       color: var(--muted);
       cursor: pointer;
       user-select: none;
@@ -130,115 +387,142 @@
       border-bottom: 1px solid var(--border);
     }
 
-    thead th:hover { color: var(--text); }
+    thead th:hover { color: var(--primary); }
     thead th.sorted { color: var(--accent); }
 
     tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
     tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: var(--surface); }
+    tbody tr:hover { background: var(--surface-2); }
 
-    td { padding: 0.75rem 0.8rem; white-space: nowrap; }
-    td.task-title { white-space: normal; min-width: 180px; }
+    td { padding: 0.7rem 0.85rem; white-space: nowrap; color: var(--secondary); }
+    td.task-title { white-space: normal; min-width: 180px; color: var(--primary); font-weight: 500; }
 
     .badge {
       display: inline-block;
       padding: 0.2rem 0.55rem;
       border-radius: 4px;
-      font-size: 0.72rem;
-      font-weight: 600;
+      font-size: 0.7rem;
+      font-weight: 700;
       text-transform: capitalize;
     }
 
-    .badge-easy   { background: #14532d; color: var(--easy); }
-    .badge-medium { background: #422006; color: var(--yellow); }
-    .badge-hard   { background: #450a0a; color: var(--red); }
+    .badge-easy   { background: var(--green-bg);  color: var(--green-dark);  border: 1px solid #BBF7D0; }
+    .badge-medium { background: var(--yellow-bg); color: var(--yellow-dark); border: 1px solid #FDE68A; }
+    .badge-hard   { background: var(--red-bg);    color: var(--red-dark);    border: 1px solid #FECACA; }
 
-    .score-bar-wrap { display: flex; align-items: center; gap: 0.4rem; min-width: 80px; }
-    .score-bar { flex: 1; height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; min-width: 40px; }
-    .score-bar-fill { height: 100%; border-radius: 99px; background: var(--accent); }
-    .score-val { font-variant-numeric: tabular-nums; font-size: 0.82rem; font-weight: 600; min-width: 34px; text-align: right; }
+    .score-bar-wrap { display: flex; align-items: center; gap: 0.4rem; min-width: 90px; }
+    .score-bar {
+      flex: 1;
+      height: 5px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+      min-width: 44px;
+    }
 
-    .dab-score { color: var(--accent); font-size: 0.92rem; font-weight: 700; }
-    .cost-val  { color: var(--green); font-variant-numeric: tabular-nums; font-size: 0.82rem; }
+    .score-bar-fill { height: 100%; border-radius: 99px; }
+    .fill-high { background: var(--green); }
+    .fill-mid  { background: var(--yellow); }
+    .fill-low  { background: var(--red); }
 
-    .model-chip { background: var(--border); padding: 0.2rem 0.45rem; border-radius: 4px; font-size: 0.72rem; font-family: monospace; }
-    .sort-arrow { margin-left: 0.2rem; opacity: 0.4; }
+    .score-val {
+      font-variant-numeric: tabular-nums;
+      font-size: 0.8rem;
+      font-weight: 600;
+      min-width: 34px;
+      text-align: right;
+      color: var(--primary);
+    }
+
+    .dab-score {
+      font-size: 0.9rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dab-high { color: var(--green-dark); }
+    .dab-mid  { color: var(--yellow-dark); }
+    .dab-low  { color: var(--red-dark); }
+
+    .cost-val {
+      font-variant-numeric: tabular-nums;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--secondary);
+    }
+
+    .model-chip {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 0.18rem 0.45rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--accent-dark);
+      background: var(--accent-dim);
+      padding: 0.1rem 0.35rem;
+      border-radius: 3px;
+    }
+
+    .sort-arrow { margin-left: 0.2rem; opacity: 0.35; }
     .sort-arrow.active { opacity: 1; }
 
-    /* Quick snapshot table */
-    .snapshot-wrap {
-      overflow-x: auto;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      margin-bottom: 2.5rem;
-    }
-
-    .snapshot-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-
-    .snapshot-table thead th {
-      background: var(--surface);
-      padding: 0.6rem 1rem;
-      text-align: left;
-      font-size: 0.72rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--muted);
-      border-bottom: 1px solid var(--border);
-      white-space: nowrap;
-    }
-
-    .snapshot-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
-    .snapshot-table tbody tr:last-child { border-bottom: none; }
-    .snapshot-table tbody tr:hover { background: var(--surface); }
-    .snapshot-table td { padding: 0.6rem 1rem; white-space: nowrap; }
-
-    .snap-rank  { color: var(--muted); font-size: 0.78rem; font-weight: 700; width: 36px; }
-    .snap-model { font-family: monospace; font-size: 0.82rem; font-weight: 600; }
-    .snap-score { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
-    .snap-tasks { color: var(--muted); font-size: 0.8rem; }
-    .snap-cost  { color: var(--green); font-variant-numeric: tabular-nums; font-size: 0.8rem; }
-
-    .snap-bar-wrap { display: flex; align-items: center; gap: 0.5rem; min-width: 120px; }
-    .snap-bar { flex: 1; height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
-    .snap-bar-fill { height: 100%; border-radius: 99px; background: var(--accent); }
-
-    .tag { display: inline-block; padding: 0.15rem 0.45rem; border-radius: 4px; font-size: 0.68rem; font-weight: 600; margin-left: 0.4rem; }
-    .tag-best  { background: #1e3a1e; color: var(--green); }
-    .tag-value { background: #2a1f00; color: var(--yellow); }
-    .tag-cheap { background: #0f2233; color: #38bdf8; }
-
+    /* ── Footer ─────────────────────────────────────── */
     footer {
       text-align: center;
       padding: 2rem;
       color: var(--muted);
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       border-top: 1px solid var(--border);
       margin-top: 3rem;
+      background: var(--surface);
     }
 
-    footer a { color: var(--accent); text-decoration: none; }
+    footer a { color: var(--accent); text-decoration: none; font-weight: 600; }
     footer a:hover { text-decoration: underline; }
 
-    #loading { text-align: center; padding: 3rem; color: var(--muted); }
-    #error   { text-align: center; padding: 3rem; color: var(--red); }
+    #loading {
+      text-align: center;
+      padding: 4rem;
+      color: var(--muted);
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    #error {
+      text-align: center;
+      padding: 3rem;
+      color: var(--red-dark);
+      background: var(--red-bg);
+      border-radius: 12px;
+      border: 1px solid #FECACA;
+    }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>Real<span>DataAgent</span>Bench</h1>
-  <p>Forces LLM agents to think like real statisticians — not just copy answers</p>
-  <div class="meta">
-    <span id="meta-runs">— runs</span>
-    <span id="meta-tasks">— tasks</span>
-    <span id="meta-updated">—</span>
-    <span>
-      <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench"
-         style="color:var(--accent);text-decoration:none;" target="_blank">
+  <div class="header-inner">
+    <h1>Real<span>DataAgent</span>Bench</h1>
+    <p>Forces LLM agents to think like real statisticians — not just copy answers</p>
+    <div class="meta">
+      <span class="pill" id="meta-runs">— runs</span>
+      <span class="pill" id="meta-tasks">— tasks</span>
+      <span class="pill" id="meta-updated">—</span>
+      <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench" target="_blank">
         GitHub ↗
       </a>
-    </span>
+    </div>
   </div>
 </header>
 
@@ -247,10 +531,16 @@
   <div id="error" style="display:none"></div>
 
   <div id="content" style="display:none">
-    <p class="section-title">Model Rankings</p>
+
+    <!-- Insight boxes -->
+    <div class="insights" id="insights-row"></div>
+
+    <!-- Model ranking cards -->
+    <p class="section-label">Model Rankings</p>
     <div class="model-cards" id="model-cards"></div>
 
-    <p class="section-title">Quick Snapshot</p>
+    <!-- Quick Snapshot table -->
+    <p class="section-label">Quick Snapshot</p>
     <div class="snapshot-wrap">
       <table class="snapshot-table">
         <thead>
@@ -267,26 +557,26 @@
       </table>
     </div>
 
-    <p class="section-title">All Runs</p>
+    <!-- Full runs table -->
+    <p class="section-label">All Runs</p>
     <div class="filters" id="filters">
-      <button class="filter-btn active" data-filter="all" data-type="difficulty">All Difficulties</button>
-      <button class="filter-btn" data-filter="easy" data-type="difficulty">Easy</button>
-      <button class="filter-btn" data-filter="medium" data-type="difficulty">Medium</button>
-      <button class="filter-btn" data-filter="hard" data-type="difficulty">Hard</button>
-      <span style="width:1px;background:var(--border);margin:0 0.25rem;display:inline-block;height:24px;vertical-align:middle"></span>
-      <button class="filter-btn" data-filter="eda" data-type="category">EDA</button>
-      <button class="filter-btn" data-filter="feature_engineering" data-type="category">Feature Eng.</button>
-      <button class="filter-btn" data-filter="modeling" data-type="category">Modeling</button>
-      <button class="filter-btn" data-filter="statistical_inference" data-type="category">Stat. Inference</button>
-      <button class="filter-btn" data-filter="ml_engineering" data-type="category">ML Engineering</button>
-      <span style="width:1px;background:var(--border);margin:0 0.25rem;display:inline-block;height:24px;vertical-align:middle"></span>
-      <button class="filter-btn" data-filter="all" data-type="provider">All Models</button>
-      <button class="filter-btn" data-filter="anthropic" data-type="provider">Anthropic</button>
-      <button class="filter-btn" data-filter="openai" data-type="provider">OpenAI</button>
-      <button class="filter-btn" data-filter="google" data-type="provider">Google</button>
-      <button class="filter-btn" data-filter="xai" data-type="provider">xAI</button>
-      <button class="filter-btn" data-filter="deepseek" data-type="provider">DeepSeek</button>
-      <button class="filter-btn" data-filter="groq" data-type="provider">Groq (Llama)</button>
+      <button class="filter-btn active" data-filter="all"                  data-type="difficulty">All Difficulties</button>
+      <button class="filter-btn"        data-filter="easy"                 data-type="difficulty">Easy</button>
+      <button class="filter-btn"        data-filter="medium"               data-type="difficulty">Medium</button>
+      <button class="filter-btn"        data-filter="hard"                 data-type="difficulty">Hard</button>
+      <span class="divider"></span>
+      <button class="filter-btn"        data-filter="eda"                  data-type="category">EDA</button>
+      <button class="filter-btn"        data-filter="feature_engineering"  data-type="category">Feature Eng.</button>
+      <button class="filter-btn"        data-filter="modeling"             data-type="category">Modeling</button>
+      <button class="filter-btn"        data-filter="statistical_inference" data-type="category">Stat. Inference</button>
+      <button class="filter-btn"        data-filter="ml_engineering"       data-type="category">ML Engineering</button>
+      <span class="divider"></span>
+      <button class="filter-btn"        data-filter="all"                  data-type="provider">All Models</button>
+      <button class="filter-btn"        data-filter="anthropic"            data-type="provider">Anthropic</button>
+      <button class="filter-btn"        data-filter="openai"               data-type="provider">OpenAI</button>
+      <button class="filter-btn"        data-filter="google"               data-type="provider">Google</button>
+      <button class="filter-btn"        data-filter="xai"                  data-type="provider">xAI</button>
+      <button class="filter-btn"        data-filter="groq"                 data-type="provider">Groq (Llama)</button>
     </div>
 
     <div class="table-wrap">
@@ -327,15 +617,30 @@
   let activeFilter = 'all';
   let activeFilterType = 'difficulty';
 
-  // Map canonical model prefixes → provider slug for filter buttons
   function modelProvider(model) {
-    if (model.startsWith('claude'))    return 'anthropic';
+    if (model.startsWith('claude'))                          return 'anthropic';
     if (model.startsWith('gpt-') || model.startsWith('gpt4')) return 'openai';
-    if (model.startsWith('gemini'))    return 'google';
-    if (model.startsWith('grok'))      return 'xai';
-    if (model.startsWith('deepseek')) return 'deepseek';
-    // Groq: llama, mixtral, gemma
+    if (model.startsWith('gemini'))                          return 'google';
+    if (model.startsWith('grok'))                            return 'xai';
+    if (model.startsWith('deepseek'))                        return 'deepseek';
     return 'groq';
+  }
+
+  const PROVIDER_LABELS = {
+    anthropic: 'Anthropic', openai: 'OpenAI', google: 'Google',
+    xai: 'xAI', groq: 'Groq', deepseek: 'DeepSeek',
+  };
+
+  // Score tier helpers
+  function scoreTier(v) {
+    if (v >= 0.78) return 'high';
+    if (v >= 0.70) return 'mid';
+    return 'low';
+  }
+
+  function scoreColorClass(v, prefix) {
+    const t = scoreTier(v);
+    return `${prefix}-${t}`;
   }
 
   async function load() {
@@ -347,24 +652,23 @@
       document.getElementById('loading').style.display = 'none';
       document.getElementById('content').style.display = 'block';
 
+      const taskCount  = new Set(data.runs.map(r => r.task_id)).size;
+      const modelCount = new Set(data.runs.map(r => r.model)).size;
+
       document.getElementById('meta-runs').textContent =
         `${data.total_runs} run${data.total_runs !== 1 ? 's' : ''}`;
-      const taskCount = new Set(data.runs.map(r => r.task_id)).size;
       document.getElementById('meta-tasks').textContent = `${taskCount} tasks`;
       document.getElementById('meta-updated').textContent =
         'Updated ' + new Date(data.generated_at).toLocaleDateString('en-US', {
           month: 'short', day: 'numeric', year: 'numeric'
         });
-
-      renderModelCards(data.model_summary);
-      renderSnapshot(data.model_summary);
-      allRuns = data.runs;
-
-      // Dynamic footer
-      const modelCount = new Set(data.runs.map(r => r.model)).size;
       document.getElementById('footer-stats').textContent =
         `${taskCount} tasks · ${modelCount} models · 4-dimension scoring`;
 
+      renderInsights(data.model_summary);
+      renderModelCards(data.model_summary);
+      renderSnapshot(data.model_summary);
+      allRuns = data.runs;
       renderTable();
     } catch (e) {
       document.getElementById('loading').style.display = 'none';
@@ -374,65 +678,116 @@
     }
   }
 
-  const PROVIDER_LABELS = {
-    anthropic: 'Anthropic', openai: 'OpenAI', google: 'Google',
-    xai: 'xAI', groq: 'Groq', deepseek: 'DeepSeek',
-  };
+  function renderInsights(summaries) {
+    const eligible = summaries.filter(s => s.tasks_run >= 5);
+    const best      = summaries[0];
+    const bestValue = [...eligible].sort((a, b) =>
+      (b.avg_dab_score / (b.avg_cost_usd || 0.0001)) -
+      (a.avg_dab_score / (a.avg_cost_usd || 0.0001))
+    )[0];
+    const cheapest = [...eligible].sort((a, b) => a.avg_cost_usd - b.avg_cost_usd)[0];
+
+    const ratio = Math.round(best.avg_cost_usd / (bestValue.avg_cost_usd || 0.0001));
+    const scoreDiff = ((best.avg_dab_score - bestValue.avg_dab_score) * 100).toFixed(1);
+
+    document.getElementById('insights-row').innerHTML = `
+      <div class="insight-box blue">
+        <div class="insight-icon">💡</div>
+        <div>
+          <div class="insight-title">Key Insight</div>
+          <div class="insight-body">
+            <strong>${bestValue.model}</strong> scores only ${scoreDiff}% below the top model
+            at <strong>${ratio}× lower cost</strong> per task — the best statistical performance
+            per dollar on the benchmark.
+          </div>
+        </div>
+      </div>
+      <div class="insight-box green">
+        <div class="insight-icon">🏆</div>
+        <div>
+          <div class="insight-title">Best Performing Model</div>
+          <div class="insight-body">
+            <strong>${best.model}</strong> leads with RDAB score
+            <strong>${best.avg_dab_score.toFixed(3)}</strong> across
+            ${best.tasks_run} tasks — highest correctness + statistical validity combined.
+          </div>
+        </div>
+      </div>
+      <div class="insight-box yellow">
+        <div class="insight-icon">⚠️</div>
+        <div>
+          <div class="insight-title">Caution — Stat Validity Gap</div>
+          <div class="insight-body">
+            High correctness scores can mask poor statistical reasoning.
+            Filter by <strong>Stat. Inference</strong> to see where models
+            fail to report uncertainty or draw causal conclusions from observational data.
+          </div>
+        </div>
+      </div>`;
+  }
 
   function renderSnapshot(summaries) {
-    const best = summaries[0];
-    // cheapest among models with ≥5 tasks (exclude tiny sample sizes)
-    const eligible = summaries.filter(s => s.tasks_run >= 5);
-    const cheapest = [...eligible].sort((a, b) => a.avg_cost_usd - b.avg_cost_usd)[0];
-    // best value = score / cost (among eligible)
+    const eligible  = summaries.filter(s => s.tasks_run >= 5);
+    const best      = summaries[0];
+    const cheapest  = [...eligible].sort((a, b) => a.avg_cost_usd - b.avg_cost_usd)[0];
     const bestValue = [...eligible].sort((a, b) =>
-      (b.avg_dab_score / (b.avg_cost_usd || 0.0001)) - (a.avg_dab_score / (a.avg_cost_usd || 0.0001))
+      (b.avg_dab_score / (b.avg_cost_usd || 0.0001)) -
+      (a.avg_dab_score / (a.avg_cost_usd || 0.0001))
     )[0];
 
     const tbody = document.getElementById('snapshot-body');
     tbody.innerHTML = summaries.map((s, i) => {
-      const pct = Math.round(s.avg_dab_score * 100);
+      const pct      = Math.round(s.avg_dab_score * 100);
+      const tier     = scoreTier(s.avg_dab_score);
       const provider = PROVIDER_LABELS[modelProvider(s.model)] || 'Other';
-      const tags = [];
+      const tags     = [];
       if (s.model === best.model)      tags.push('<span class="tag tag-best">Top Score</span>');
       if (s.model === bestValue.model) tags.push('<span class="tag tag-value">Best Value</span>');
       if (s.model === cheapest.model)  tags.push('<span class="tag tag-cheap">Cheapest</span>');
+
       return `
         <tr>
           <td class="snap-rank">${i + 1}</td>
           <td class="snap-model">${s.model}${tags.join('')}</td>
           <td>
             <div class="snap-bar-wrap">
-              <div class="snap-bar"><div class="snap-bar-fill" style="width:${pct}%"></div></div>
-              <span class="snap-score">${s.avg_dab_score.toFixed(3)}</span>
+              <div class="snap-bar">
+                <div class="snap-bar-fill ${tier}" style="width:${pct}%"></div>
+              </div>
+              <span class="snap-score-val ${scoreColorClass(s.avg_dab_score, 'dab')}">
+                ${s.avg_dab_score.toFixed(3)}
+              </span>
             </div>
           </td>
           <td class="snap-tasks">${s.tasks_run} / 23</td>
           <td class="snap-cost">$${s.avg_cost_usd.toFixed(4)}</td>
-          <td style="color:var(--muted);font-size:0.78rem">${provider}</td>
+          <td style="color:var(--muted-light);font-size:0.75rem">${provider}</td>
         </tr>`;
     }).join('');
   }
 
   function renderModelCards(summaries) {
     const container = document.getElementById('model-cards');
-    container.innerHTML = summaries.map((s, i) => `
-      <div class="model-card">
-        <div class="rank">#${i + 1} ${i === 0 ? '🏆' : ''}</div>
-        <div class="name" title="${s.model}">${s.model}</div>
-        <div class="score">${s.avg_dab_score.toFixed(3)}</div>
-        <div class="tasks-run">${s.tasks_run} task${s.tasks_run !== 1 ? 's' : ''} completed</div>
-        <div class="avg-cost">avg $${(s.avg_cost_usd || 0).toFixed(4)} / task</div>
-      </div>
-    `).join('');
+    container.innerHTML = summaries.map((s, i) => {
+      const tier = scoreTier(s.avg_dab_score);
+      return `
+        <div class="model-card ${i === 0 ? 'top-card' : ''}">
+          <div class="rank">#${i + 1}${i === 0 ? ' 🏆' : ''}</div>
+          <div class="name" title="${s.model}">${s.model}</div>
+          <div class="score score-${tier}">${s.avg_dab_score.toFixed(3)}</div>
+          <div class="tasks-run">${s.tasks_run} task${s.tasks_run !== 1 ? 's' : ''} completed</div>
+          <div class="avg-cost">avg $${(s.avg_cost_usd || 0).toFixed(4)} / task</div>
+        </div>`;
+    }).join('');
   }
 
   function scoreBar(val) {
-    const pct = Math.round(val * 100);
+    const pct  = Math.round(val * 100);
+    const tier = scoreTier(val);
     return `
       <div class="score-bar-wrap">
         <div class="score-bar">
-          <div class="score-bar-fill" style="width:${pct}%"></div>
+          <div class="score-bar-fill fill-${tier}" style="width:${pct}%"></div>
         </div>
         <span class="score-val">${val.toFixed(3)}</span>
       </div>`;
@@ -455,22 +810,24 @@
     });
 
     const tbody = document.getElementById('table-body');
-    tbody.innerHTML = sorted.map(r => `
-      <tr>
-        <td><code>${r.task_id}</code></td>
-        <td class="task-title">${r.title}</td>
-        <td><span class="badge badge-${r.difficulty}">${r.difficulty}</span></td>
-        <td style="color:var(--muted);font-size:0.78rem">${r.category}</td>
-        <td><span class="model-chip">${r.model}</span></td>
-        <td>${scoreBar(r.correctness)}</td>
-        <td>${scoreBar(r.code_quality)}</td>
-        <td>${scoreBar(r.efficiency)}</td>
-        <td>${scoreBar(r.stat_validity)}</td>
-        <td><span class="dab-score">${r.dab_score.toFixed(3)}</span></td>
-        <td style="color:var(--muted)">${(r.total_tokens || 0).toLocaleString()}</td>
-        <td><span class="cost-val">$${(r.cost_usd || 0).toFixed(4)}</span></td>
-      </tr>
-    `).join('');
+    tbody.innerHTML = sorted.map(r => {
+      const dabTier = scoreTier(r.dab_score);
+      return `
+        <tr>
+          <td><code>${r.task_id}</code></td>
+          <td class="task-title">${r.title}</td>
+          <td><span class="badge badge-${r.difficulty}">${r.difficulty}</span></td>
+          <td style="color:var(--muted);font-size:0.75rem">${r.category}</td>
+          <td><span class="model-chip">${r.model}</span></td>
+          <td>${scoreBar(r.correctness)}</td>
+          <td>${scoreBar(r.code_quality)}</td>
+          <td>${scoreBar(r.efficiency)}</td>
+          <td>${scoreBar(r.stat_validity)}</td>
+          <td><span class="dab-score dab-${dabTier}">${r.dab_score.toFixed(3)}</span></td>
+          <td style="color:var(--muted);font-size:0.78rem">${(r.total_tokens || 0).toLocaleString()}</td>
+          <td><span class="cost-val">$${(r.cost_usd || 0).toFixed(4)}</span></td>
+        </tr>`;
+    }).join('');
   }
 
   // Sorting
@@ -478,12 +835,8 @@
     const th = e.target.closest('th[data-col]');
     if (!th) return;
     const col = th.dataset.col;
-    if (col === sortCol) {
-      sortDir *= -1;
-    } else {
-      sortCol = col;
-      sortDir = col === 'cost_usd' ? 1 : -1; // cost: sort ascending by default
-    }
+    sortDir = col === sortCol ? sortDir * -1 : (col === 'cost_usd' ? 1 : -1);
+    sortCol = col;
     document.querySelectorAll('thead th').forEach(t => {
       const arrow = t.querySelector('.sort-arrow');
       if (!arrow) return;
@@ -504,7 +857,7 @@
   document.getElementById('filters').addEventListener('click', e => {
     const btn = e.target.closest('.filter-btn');
     if (!btn) return;
-    activeFilter = btn.dataset.filter;
+    activeFilter     = btn.dataset.filter;
     activeFilterType = btn.dataset.type;
     document.querySelectorAll('.filter-btn').forEach(b =>
       b.classList.toggle('active', b === btn)
