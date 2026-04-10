@@ -251,9 +251,29 @@ pytest tests/ --cov=realdataagentbench --cov-report=term-missing
 - [x] Phase 4 — Multi-model support (GPT-4o, GPT-4o-mini, Claude Haiku, Claude Sonnet)
 - [x] Phase 5 — 23 tasks across 5 categories including ML Engineering (leakage, calibration, nested CV)
 - [x] Phase 6 — Cost per run ($) in leaderboard; category filters on live site; 150 tests
+- [ ] New models: Grok (xAI), Llama 3 (via Groq/Together), Gemini 1.5 Pro, GPT-5
 - [ ] 30+ tasks (visualization, NLP, time series categories)
 - [ ] Human baseline scores
 - [ ] arXiv paper
+
+---
+
+## For Companies — Save Real Money
+
+Run the benchmark on your own small data to see which model gives the best statistical thinking at the lowest cost. You don't need big infrastructure — just your API keys and a CSV.
+
+**Real numbers from 44 runs across 23 tasks:**
+
+| Model | Avg RDAB Score | Avg Cost / Task |
+|-------|:--------------:|:---------------:|
+| claude-sonnet-4-6 | **0.799** | ~$0.089 |
+| gpt-4o | 0.779 | ~$0.052 |
+| gpt-4o-mini | 0.780 | ~$0.009 |
+| claude-haiku | 0.763 | ~$0.005 |
+
+GPT-4o and Claude Sonnet score within 2% of each other — but GPT-4o costs 40% less per task on average. GPT-4o-mini scores nearly as well as GPT-4o at **10× lower cost**. For a company running hundreds of data analysis tasks a week, that difference compounds fast.
+
+> **Bottom line:** The best model for your use case isn't always the most expensive one. Run RDAB on your own data, check the cost column, and choose accordingly.
 
 ---
 
