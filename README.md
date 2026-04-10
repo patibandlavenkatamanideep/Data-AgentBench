@@ -289,5 +289,5 @@ GPT-4o and Claude Sonnet score within 2% of each other — but GPT-4o costs 40% 
 
 ## Built by
 
-[Venkata Manideep Patibandla](https://github.com/patibandlavenkatamanideep) — MS CS, University at Buffalo.
+[Venkata Manideep Patibandla](https://github.com/patibandlavenkatamanideep)
 Built to demonstrate production-grade ML engineering and statistically honest LLM evaluation.
