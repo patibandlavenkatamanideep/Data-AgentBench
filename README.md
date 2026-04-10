@@ -1,10 +1,14 @@
-# RealDataAgentBench
+<p align="center">
+  <img src="docs/logo.svg" alt="RealDataAgentBench logo" width="700" />
+</p>
 
-[![CI](https://github.com/patibandlavenkatamanideep/RealDataAgentBench/actions/workflows/ci.yml/badge.svg)](https://github.com/patibandlavenkatamanideep/RealDataAgentBench/actions)
-[![Tests](https://img.shields.io/badge/tests-150%20passing-brightgreen)](https://github.com/patibandlavenkatamanideep/RealDataAgentBench/actions/workflows/ci.yml)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
-[![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/patibandlavenkatamanideep/RealDataAgentBench/blob/main/LICENSE)
-[![Leaderboard](https://img.shields.io/badge/leaderboard-live-brightgreen)](https://patibandlavenkatamanideep.github.io/RealDataAgentBench/)
+<p align="center">
+  <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench/actions"><img src="https://github.com/patibandlavenkatamanideep/RealDataAgentBench/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/tests-150%20passing-brightgreen" alt="Tests"></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python"></a>
+  <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
+  <a href="https://patibandlavenkatamanideep.github.io/RealDataAgentBench/"><img src="https://img.shields.io/badge/leaderboard-live-brightgreen" alt="Leaderboard"></a>
+</p>
 
 > **The benchmark that forces LLM agents to think like real statisticians — not just get the right number.**
 
@@ -31,95 +35,25 @@ This benchmark forces LLM agents to think like real statisticians, not just copy
 
 ## What it looks like
 
-### 1. Live leaderboard table (GitHub Pages)
+### 1. Live leaderboard — 44 runs across 4 models with cost column
 
-```
-┌─────────────────────┬───────────┬───────────────────┬────────────┬────────────────┐
-│ Task                │ Difficulty│ claude-sonnet-4-6 │  gpt-4o    │  claude-haiku  │
-├─────────────────────┼───────────┼───────────────────┼────────────┼────────────────┤
-│ eda_001 Income Dist │ Easy      │      0.933        │   0.900    │     0.920      │
-│ eda_002 Patient Recs│ Medium    │      0.700        │   0.750    │     0.625      │
-│ eda_003 Confounding │ Hard      │      0.944        │   0.830    │     0.831      │
-│ feat_001 House Prices│ Easy     │      0.776        │   0.660    │     0.747      │
-│ feat_002 Attrition  │ Medium    │      0.797        │   0.711    │     0.653      │
-│ feat_003 Retail Sales│ Medium   │      0.727        │   0.837    │     0.855      │
-│ feat_004 Credit Risk│ Hard      │      0.777        │   0.768    │     0.745      │
-│ feat_005 Fraud Imbal│ Hard      │      0.742        │   0.802    │     0.728      │
-├─────────────────────┼───────────┼───────────────────┼────────────┼────────────────┤
-│ Average             │           │    **0.799**       │   0.779    │     0.763      │
-└─────────────────────┴───────────┴───────────────────┴────────────┴────────────────┘
-```
+![Leaderboard screenshot](docs/screenshots/leaderboard.png)
 
-### 2. Agent thinking trace — GPT-4o on `stat_001` (A/B test analysis)
+> **→ [Open live leaderboard](https://patibandlavenkatamanideep.github.io/RealDataAgentBench/)** — filterable by category, sortable by score or cost.
 
-```python
-# Step 4 — agent writes and runs this code autonomously
-grouped = df.groupby('group')['converted'].mean()
-control_rate   = grouped['control']    # 0.0820
-treatment_rate = grouped['treatment']  # 0.1220
+### 2. Agent thinking trace — GPT-4o on `eda_001` (Income Distribution Analysis)
 
-absolute_lift = treatment_rate - control_rate   # +0.040
-relative_lift = absolute_lift / control_rate    # +48.8%
+![Agent trace screenshot](docs/screenshots/agent_trace.png)
 
-from scipy import stats
-control_n    = len(df[df['group'] == 'control'])
-treatment_n  = len(df[df['group'] == 'treatment'])
-z, p = stats.proportions_ztest(
-    [int(treatment_rate * treatment_n), int(control_rate * control_n)],
-    [treatment_n, control_n]
-)
-print(f"z={z:.3f}  p={p:.4f}  significant={'YES' if p < 0.05 else 'NO'}")
-# → z=2.847  p=0.0044  significant=YES
-```
+> Agent scored **0.900** on this task — autonomously called `get_dataframe_info`, `get_column_stats`, reported skewness direction, and recommended log transform.
 
-> Agent scored **0.912** on this task — reported lift, z-test, CI, and revenue per user.
+### 3. CLI in action — `dab run eda_001 --model gpt-4o`
 
-### 3. CLI in action
+![Terminal screenshot](docs/screenshots/terminal_run.png)
 
-```
-$ dab run eda_001 --model gpt-4o
+### 4. Project folder structure
 
-Running eda_001 (model=gpt-4o, dry_run=False)
-
-Complete.
-  Steps: 9  |  Tokens: 11432
-
-$ dab score outputs/eda_001_20260409T094920.json
-
-              ScoreCard — eda_001
-┏━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━┓
-┃ Dimension     ┃ Score ┃ Weight ┃ Contribution ┃
-┡━━━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━┩
-│ Correctness   │ 1.000 │   0.50 │        0.500 │
-│ Code Quality  │ 0.750 │   0.20 │        0.150 │
-│ Efficiency    │ 1.000 │   0.15 │        0.150 │
-│ Stat Validity │ 1.000 │   0.15 │        0.150 │
-│ RDAB Score    │ 0.950 │   1.00 │        0.950 │
-└───────────────┴───────┴────────┴──────────────┘
-```
-
-### 4. Project structure
-
-```
-RealDataAgentBench/
-├── realdataagentbench/
-│   ├── core/              # Task schema (Pydantic) + registry
-│   ├── datasets/
-│   │   └── generators/    # 23 seeded, reproducible generators
-│   ├── harness/           # Agent loop + multi-model providers
-│   │   ├── providers.py   # Claude, GPT-4o, GPT-4o-mini, Haiku
-│   │   └── tools.py       # run_code, get_dataframe_info, get_column_stats
-│   └── scoring/           # Correctness · Code Quality · Efficiency · Stat Validity
-├── tasks/
-│   ├── eda/               # 3 tasks
-│   ├── feature_engineering/ # 5 tasks
-│   ├── modeling/          # 5 tasks
-│   └── statistical_inference/ # 5 tasks
-├── tests/                 # 120 offline tests — no API key needed
-├── scripts/
-│   └── build_leaderboard.py
-└── docs/                  # GitHub Pages leaderboard (auto-rebuilt by CI)
-```
+![Project structure screenshot](docs/screenshots/project_structure.png)
 
 ---
 
