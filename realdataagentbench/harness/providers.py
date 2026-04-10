@@ -13,6 +13,21 @@ import pandas as pd
 from .pricing import COST_PER_M_TOKENS, compute_cost  # single source of truth
 from .tools import TOOL_DEFINITIONS, get_column_stats, get_dataframe_info, run_code
 
+
+def _json_safe(obj: Any) -> str:
+    """Fallback for json.dumps — converts un-serializable types to strings."""
+    import numpy as np
+    import pandas as pd
+    if isinstance(obj, (pd.Timestamp,)):
+        return obj.isoformat()
+    if isinstance(obj, np.integer):
+        return int(obj)
+    if isinstance(obj, np.floating):
+        return float(obj)
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    return str(obj)
+
 # ── Model name aliases ────────────────────────────────────────────────────────
 
 ANTHROPIC_MODELS = {
@@ -98,6 +113,18 @@ MODEL_ALIASES = {
 
 SYSTEM_PROMPT = """You are an expert data scientist working on a benchmark task.
 You have access to a pandas DataFrame called `df` loaded with the task dataset.
+
+The run_code tool executes Python in a sandboxed namespace. The following are
+pre-imported and ready to use WITHOUT any import statements:
+  - np        (numpy)
+  - pd        (pandas) — `df` is already loaded
+  - stats     (scipy.stats)
+  - sklearn   (scikit-learn, including sklearn.linear_model, sklearn.ensemble,
+               sklearn.preprocessing, sklearn.metrics, sklearn.model_selection)
+
+Do NOT write import statements inside run_code — they will raise an error.
+Use np, pd, stats, sklearn directly.
+
 Use the provided tools to analyse the data. After completing your analysis,
 write a clear, structured final answer that directly addresses all sub-questions
 in the task description. Be precise — include exact numeric values where computed."""
@@ -240,7 +267,7 @@ class AnthropicProvider(BaseProvider):
 
             for tu in tool_uses:
                 result = dispatch_tool(tu.name, tu.input, dataframe)
-                result_str = json.dumps(result) if isinstance(result, dict) else str(result)
+                result_str = json.dumps(result, default=_json_safe) if isinstance(result, dict) else str(result)
                 tracer.record(
                     role="tool",
                     content=result_str,
@@ -282,17 +309,30 @@ class OpenAIProvider(BaseProvider):
         ]
 
     def _chat_with_retry(self, **kwargs) -> Any:
-        """Call chat.completions.create with exponential backoff on 429 / 503."""
-        from openai import RateLimitError
+        """Call chat.completions.create with exponential backoff on 429 / 503 / connection errors."""
+        from openai import APIConnectionError, APIStatusError, RateLimitError
         delay = 5.0
-        for attempt in range(4):
+        for attempt in range(5):
             try:
                 return self.client.chat.completions.create(**kwargs)
             except RateLimitError:
-                if attempt == 3:
+                if attempt == 4:
                     raise
                 time.sleep(delay)
                 delay *= 2
+            except APIConnectionError:
+                # Transient network error — retry with backoff
+                if attempt == 4:
+                    raise
+                time.sleep(delay)
+                delay *= 2
+            except APIStatusError as e:
+                # 503 = server overloaded (transient); retry with backoff
+                if e.status_code == 503 and attempt < 4:
+                    time.sleep(delay)
+                    delay *= 2
+                else:
+                    raise
 
     def run(self, task_description, dataframe, max_steps, allowed_tools, tracer,
             budget=None):
@@ -349,7 +389,7 @@ class OpenAIProvider(BaseProvider):
                     inputs = {}
 
                 result = dispatch_tool(tc.function.name, inputs, dataframe)
-                result_str = json.dumps(result) if isinstance(result, dict) else str(result)
+                result_str = json.dumps(result, default=_json_safe) if isinstance(result, dict) else str(result)
 
                 tracer.record(
                     role="tool",
@@ -461,7 +501,7 @@ class GroqProvider(OpenAIProvider):
                     inputs = {}
 
                 result = dispatch_tool(tc.function.name, inputs, dataframe)
-                result_str = json.dumps(result) if isinstance(result, dict) else str(result)
+                result_str = json.dumps(result, default=_json_safe) if isinstance(result, dict) else str(result)
 
                 tracer.record(
                     role="tool",

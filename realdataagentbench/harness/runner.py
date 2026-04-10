@@ -7,12 +7,27 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
+
+
+def _json_default(obj):
+    """Fallback serializer for types json.dumps can't handle natively."""
+    if isinstance(obj, (pd.Timestamp, datetime)):
+        return obj.isoformat()
+    if isinstance(obj, (np.integer,)):
+        return int(obj)
+    if isinstance(obj, (np.floating,)):
+        return float(obj)
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    return str(obj)
 
 from ..core.registry import TaskRegistry
 from ..core.task import TaskSchema
 from ..datasets import get_generator
 from .agent import Agent
+from .providers import resolve_model
 from .tracer import Trace
 
 
@@ -27,7 +42,7 @@ class Runner:
         budget: float | None = None,
     ):
         self.registry = registry
-        self.model = model
+        self.model = resolve_model(model)  # store canonical name, not alias
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.agent = Agent(model=model, api_key=api_key)
@@ -108,5 +123,5 @@ class Runner:
     def _save_result(self, result: dict) -> Path:
         fname = f"{result['task_id']}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}.json"
         path = self.output_dir / fname
-        path.write_text(json.dumps(result, indent=2))
+        path.write_text(json.dumps(result, indent=2, default=_json_default))
         return path

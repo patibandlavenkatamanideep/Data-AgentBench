@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT))
 
 from realdataagentbench.core.registry import TaskRegistry
 from realdataagentbench.harness.pricing import compute_cost  # single source of truth
+from realdataagentbench.harness.providers import resolve_model  # normalise aliases
 from realdataagentbench.scoring.composite import CompositeScorer
 
 
@@ -44,7 +45,7 @@ def build(
         if trace.get("error") and not trace.get("final_answer"):
             continue
         task_id = data.get("task_id")
-        model = data.get("model", "unknown")
+        model = resolve_model(data.get("model", "unknown"))  # normalise aliases
         if not task_id or task_id not in registry:
             continue
         key = (task_id, model)

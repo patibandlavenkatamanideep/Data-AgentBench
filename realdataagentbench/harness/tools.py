@@ -48,11 +48,18 @@ def run_code(code: str, dataframe: pd.DataFrame) -> dict:
 
     buf = io.StringIO()
     try:
-        # Inject safe numpy/scipy
+        # Inject safe libraries — these are available without import statements
         import numpy as np
         import scipy.stats as stats
+        import sklearn
+        import sklearn.linear_model
+        import sklearn.ensemble
+        import sklearn.preprocessing
+        import sklearn.metrics
+        import sklearn.model_selection
         namespace["np"] = np
         namespace["stats"] = stats
+        namespace["sklearn"] = sklearn
 
         with redirect_stdout(buf):
             exec(textwrap.dedent(code), namespace)  # noqa: S102
