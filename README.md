@@ -14,32 +14,94 @@
   <a href="https://patibandlavenkatamanideep.github.io/RealDataAgentBench/"><img src="https://img.shields.io/badge/leaderboard-live-brightgreen" alt="Leaderboard"></a>
 </p>
 
-> Built with guidance from Grok (xAI) and Claude Sonnet.
-
-- **23 tasks** across EDA, Feature Engineering, Modeling, Statistical Inference, and ML Engineering — including data leakage, calibration, nested CV, and ensemble methods
-- **4 models benchmarked**: Claude Sonnet, GPT-4o, GPT-4o-mini, Claude Haiku — real scores from real API runs, with per-run cost in USD
-- **4-dimension scoring**: Correctness · Code Quality · Efficiency · Statistical Validity — so you know exactly *where* each model wins or fails
-
-Companies save real money by choosing the right model for real data science work.
+> Inspired by real-world failures in LLM-generated analysis — misinterpreted A/B tests, data leakage in pipelines, causal claims drawn from observational data.
 
 ---
 
-## Leaderboard (4 models · 23 tasks)
+## TL;DR
 
-| Model | Avg RDAB Score | Tasks Run |
-|-------|:--------------:|:---------:|
-| **claude-sonnet-4-6** | **0.799** | 8 |
-| gpt-4o-mini | 0.780 | 5 |
-| gpt-4o | 0.779 | 17 |
-| claude-haiku | 0.763 | 8 |
+**RealDataAgentBench (RDAB)** is an open-source benchmark for evaluating whether LLM agents can perform real-world data science workflows with statistical rigor — not just pattern-match to a correct-looking answer.
 
-> Live leaderboard with per-task breakdowns: [patibandlavenkatamanideep.github.io/RealDataAgentBench](https://patibandlavenkatamanideep.github.io/RealDataAgentBench/)
+→ **23 tasks** across EDA, modeling, inference, and ML engineering  
+→ **4-dimensional scoring** — correctness, code quality, efficiency, statistical validity  
+→ **Tracks cost per task** to find the best model for real-world usage  
+→ **10 models benchmarked** — GPT-5, GPT-4.1, GPT-4o, Claude Sonnet, Gemini 2.5, Grok, Llama, and more  
+
+Run it locally in under 5 minutes to compare any model on real data science work.
+
+---
+
+## Why RDAB is different
+
+Most data science agent benchmarks ask: *"Did the agent get the right answer?"*
+
+RDAB asks four harder questions:
+
+| Dimension | What it catches |
+|-----------|----------------|
+| **Correctness** | Did the agent find the right skewness, correlation sign, missing columns? |
+| **Code Quality** | Did it use vectorized ops? Descriptive names? No raw loops? |
+| **Efficiency** | Did it waste 10× the token budget to answer a simple question? |
+| **Stat Validity** | Did it report uncertainty? Use appropriate tests? Avoid confusing correlation with causation? |
+
+An agent can score **1.0 on correctness and 0.2 on statistical validity** — and that tells you something real about where it fails.
+
+---
+
+## Key Findings
+
+From 163 runs across 10 models and 23 tasks:
+
+- **Frontier models often fail statistical validity** — high correctness scores mask poor uncertainty reporting, missing confidence intervals, and causal claims drawn from observational data
+- **Lower-cost models close the gap fast** — GPT-4.1 scores within 3% of GPT-5 at ~15× lower cost per task ($0.038 vs $0.596)
+- **Performance varies significantly by category** — no single model dominates across EDA, modeling, and inference; the best model per category differs
+- **Reasoning models don't always win** — GPT-4o outscores Claude Opus on many tasks despite being far cheaper ($0.042 vs $1.92 per task)
+
+---
+
+## Concrete failure example
+
+> A model achieved **0.95 correctness but 0.28 statistical validity** on `stat_003` (Salary Gap Analysis):
+> - Reported a salary gap number without controlling for confounders (education, tenure, role)
+> - Drew a causal conclusion ("women are paid less *because of* gender") from an OLS coefficient
+> - Omitted confidence intervals and p-value interpretation
+> - Passed the numeric check — failed the statistical reasoning check
+
+This is the gap RDAB is designed to measure.
+
+---
+
+## Leaderboard (10 models · 163 runs · 23 tasks)
+
+| Rank | Model | Avg RDAB Score | Tasks Run | Avg Cost / Task |
+|:----:|-------|:--------------:|:---------:|:---------------:|
+| 1 | **gpt-5** | **0.812** | 23 / 23 | $0.5957 |
+| 2 | gpt-4.1 | 0.791 | 23 / 23 | $0.0384 |
+| 3 | gpt-4o | 0.785 | 22 / 23 | $0.0424 |
+| 4 | claude-sonnet-4-6 | 0.784 | 9 / 23 | $0.4758 |
+| 5 | gpt-4o-mini | 0.780 | 5 / 23 | $0.0038 |
+| 6 | claude-haiku-4-5 | 0.763 | 8 / 23 | $0.0625 |
+| 7 | claude-opus-4-6 | 0.751 | 17 / 23 | $1.9197 |
+| 8 | llama-3.3-70b | 0.748 | 11 / 23 | $0.0023 |
+| 9 | grok-3-mini | 0.626 | 23 / 23 | $0.0024 |
+| 10 | gemini-2.5-flash | 0.614 | 22 / 23 | $0.0015 |
+
+> Live leaderboard with per-task breakdowns and category filters: [patibandlavenkatamanideep.github.io/RealDataAgentBench](https://patibandlavenkatamanideep.github.io/RealDataAgentBench/)
+
+---
+
+## Who is this for?
+
+- **ML / GenAI engineers** evaluating LLM agents on structured analytical tasks
+- **Data teams** comparing models for analytical workflows before committing to an API contract
+- **Researchers** studying statistical reasoning and validity in LLM outputs
+- **Engineers** who want a production-grade benchmark they can clone, extend, and run on their own data
 
 ---
 
 ## What it looks like
 
-### 1. Live leaderboard — 44 runs across 4 models with cost column
+### 1. Live leaderboard — 163 runs across 10 models with cost column
 
 ![Leaderboard screenshot](docs/screenshots/leaderboard.png)
 
@@ -61,23 +123,6 @@ Companies save real money by choosing the right model for real data science work
 
 ---
 
-## Why RDAB is different
-
-Most data science agent benchmarks ask: *"Did the agent get the right answer?"*
-
-RDAB asks four harder questions:
-
-| Dimension | What it catches |
-|-----------|----------------|
-| **Correctness** | Did the agent find the right skewness, correlation sign, missing columns? |
-| **Code Quality** | Did it use vectorized ops? Descriptive names? No raw loops? |
-| **Efficiency** | Did it waste 10x the token budget to answer a simple question? |
-| **Stat Validity** | Did it report uncertainty? Use appropriate tests? Avoid confusing correlation with causation? |
-
-An agent can score 1.0 on correctness and 0.2 on statistical validity — and that tells you something real about where it fails.
-
----
-
 ## Quickstart
 
 ```bash
@@ -87,8 +132,8 @@ cd RealDataAgentBench
 pip install -e ".[dev]"
 
 # 2. Add your API keys (.env file)
-echo "ANTHROPIC_API_KEY=sk-ant-..." >> .env
-echo "OPENAI_API_KEY=sk-..."       >> .env
+cp .env.example .env
+# then fill in the keys you have
 
 # 3. List all tasks
 dab list
@@ -101,14 +146,13 @@ dab run eda_001
 
 # 6. Run with a different model
 dab run eda_001 --model gpt-4o
-dab run eda_001 --model gpt-4o-mini
-dab run eda_001 --model haiku
+dab run eda_001 --model gpt-4.1
+dab run eda_001 --model gpt-5
 
 # 7. Run with Groq (free tier — no credit card needed)
 #    Get your key at https://console.groq.com, add GROQ_API_KEY to .env
 dab run eda_001 --model groq              # llama-3.3-70b-versatile
 dab run eda_001 --model llama-8b          # fastest, cheapest
-dab run eda_001 --model mixtral           # mixtral-8x7b-32768
 
 # 8. Cap spend with --budget (stops run if cost exceeds limit)
 dab run eda_001 --model gpt-4o --budget 0.05
@@ -118,7 +162,7 @@ dab run --all --model groq --budget 0.10
 dab score outputs/eda_001_<timestamp>.json
 
 # 10. Run all tasks with one model
-dab run --all --model gpt-4o-mini
+dab run --all --model gpt-4.1
 
 # 11. See all supported models + API key status
 dab models
@@ -205,8 +249,9 @@ realdataagentbench/
 ├── harness/
 │   ├── tools.py          # Sandboxed agent tools (run_code, get_dataframe_info, get_column_stats)
 │   ├── tracer.py         # Records every step, tool call, and token count
-│   ├── agent.py          # Multi-model agentic loop (Claude, GPT-4o, GPT-4o-mini, Haiku)
-│   ├── providers.py      # Unified BaseProvider for Anthropic + OpenAI
+│   ├── agent.py          # Multi-model agentic loop
+│   ├── providers.py      # Unified BaseProvider — Anthropic, OpenAI, Groq, xAI, Google
+│   ├── pricing.py        # Single source of truth for cost per 1M tokens
 │   └── runner.py         # Orchestrates task → dataset → agent → trace → JSON
 ├── scoring/
 │   ├── correctness.py    # Ground truth matching with alias expansion
@@ -221,12 +266,12 @@ tasks/
 ├── modeling/             # 5 tasks
 ├── statistical_inference/ # 5 tasks
 └── ml_engineering/       # 5 tasks (leakage, CV, calibration, ensemble, nested CV)
-tests/                    # 120 offline tests — no API calls required
+tests/                    # 150 offline tests — no API calls required
 scripts/
 └── build_leaderboard.py  # Aggregates outputs/ → docs/results.json
 docs/
 └── index.html            # GitHub Pages leaderboard (auto-rebuilt by CI)
-.github/workflows/        # CI: pytest on Python 3.10/3.11/3.12 + leaderboard rebuild
+.github/workflows/        # CI: pytest on Python 3.10–3.13 + leaderboard rebuild
 ```
 
 ---
@@ -237,7 +282,7 @@ docs/
 2. Add a seeded generator in `realdataagentbench/datasets/generators/`
 3. Register it in `realdataagentbench/datasets/__init__.py`
 4. Add tests in `tests/`
-5. Run `pytest tests/ -v` — all 120 must pass before opening a PR
+5. Run `pytest tests/ -v` — all tests must pass before opening a PR
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
@@ -259,33 +304,35 @@ pytest tests/ --cov=realdataagentbench --cov-report=term-missing
 
 ## Roadmap
 
-- [x] Phase 1 — Task schema, harness, scoring engine, 120 tests
+- [x] Phase 1 — Task schema, harness, scoring engine, 150 tests
 - [x] Phase 2 — 8 tasks across EDA + Feature Engineering
 - [x] Phase 3 — GitHub Pages leaderboard with auto-rebuild CI
 - [x] Phase 4 — Multi-model support (GPT-4o, GPT-4o-mini, Claude Haiku, Claude Sonnet)
 - [x] Phase 5 — 23 tasks across 5 categories including ML Engineering (leakage, calibration, nested CV)
-- [x] Phase 6 — Cost per run ($) in leaderboard; category filters on live site; 150 tests
-- [ ] New models: Grok (xAI), Llama 3 (via Groq/Together), Gemini 1.5 Pro, GPT-5
+- [x] Phase 6 — Cost per run ($) in leaderboard; category filters; 150 tests
+- [x] Phase 7 — 10 models: GPT-5, GPT-4.1, Grok-3-mini, Gemini 2.5 Flash, Llama 3.3 via Groq; 163 total runs
 - [ ] 30+ tasks (visualization, NLP, time series categories)
 - [ ] Human baseline scores
 - [ ] arXiv paper
 
 ---
 
-## For Companies — Save Real Money
+## For Companies — Choose the Right Model
 
-Run the benchmark on your own small data to see which model gives the best statistical thinking at the lowest cost. You don't need big infrastructure — just your API keys and a CSV.
+RDAB helps teams identify the most cost-effective model for statistically sound data science workflows — before committing to an API contract.
 
-**Real numbers from 44 runs across 23 tasks:**
+**Real numbers from 163 runs across 10 models and 23 tasks:**
 
 | Model | Avg RDAB Score | Avg Cost / Task |
 |-------|:--------------:|:---------------:|
-| claude-sonnet-4-6 | **0.799** | ~$0.089 |
-| gpt-4o | 0.779 | ~$0.052 |
-| gpt-4o-mini | 0.780 | ~$0.009 |
-| claude-haiku | 0.763 | ~$0.005 |
+| **gpt-5** | **0.812** | $0.5957 |
+| gpt-4.1 | 0.791 | $0.0384 |
+| gpt-4o | 0.785 | $0.0424 |
+| gpt-4o-mini | 0.780 | $0.0038 |
+| grok-3-mini | 0.626 | $0.0024 |
+| gemini-2.5-flash | 0.614 | $0.0015 |
 
-GPT-4o and Claude Sonnet score within 2% of each other — but GPT-4o costs 40% less per task on average. GPT-4o-mini scores nearly as well as GPT-4o at **10× lower cost**. For a company running hundreds of data analysis tasks a week, that difference compounds fast.
+GPT-5 leads — but GPT-4.1 scores within 3% at **15× lower cost**. GPT-4o-mini scores within 4% of GPT-5 at **150× lower cost**. For a team running hundreds of analysis tasks a week, that compounds fast.
 
 > **Bottom line:** The best model for your use case isn't always the most expensive one. Run RDAB on your own data, check the cost column, and choose accordingly.
 
@@ -293,5 +340,5 @@ GPT-4o and Claude Sonnet score within 2% of each other — but GPT-4o costs 40% 
 
 ## Built by
 
-[Venkata Manideep Patibandla](https://github.com/patibandlavenkatamanideep)
+[Venkata Manideep Patibandla](https://github.com/patibandlavenkatamanideep)  
 Built to demonstrate production-grade ML engineering and statistically honest LLM evaluation.

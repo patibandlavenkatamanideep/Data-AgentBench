@@ -165,6 +165,49 @@
     .sort-arrow { margin-left: 0.2rem; opacity: 0.4; }
     .sort-arrow.active { opacity: 1; }
 
+    /* Quick snapshot table */
+    .snapshot-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 2.5rem;
+    }
+
+    .snapshot-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+
+    .snapshot-table thead th {
+      background: var(--surface);
+      padding: 0.6rem 1rem;
+      text-align: left;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .snapshot-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+    .snapshot-table tbody tr:last-child { border-bottom: none; }
+    .snapshot-table tbody tr:hover { background: var(--surface); }
+    .snapshot-table td { padding: 0.6rem 1rem; white-space: nowrap; }
+
+    .snap-rank  { color: var(--muted); font-size: 0.78rem; font-weight: 700; width: 36px; }
+    .snap-model { font-family: monospace; font-size: 0.82rem; font-weight: 600; }
+    .snap-score { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .snap-tasks { color: var(--muted); font-size: 0.8rem; }
+    .snap-cost  { color: var(--green); font-variant-numeric: tabular-nums; font-size: 0.8rem; }
+
+    .snap-bar-wrap { display: flex; align-items: center; gap: 0.5rem; min-width: 120px; }
+    .snap-bar { flex: 1; height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .snap-bar-fill { height: 100%; border-radius: 99px; background: var(--accent); }
+
+    .tag { display: inline-block; padding: 0.15rem 0.45rem; border-radius: 4px; font-size: 0.68rem; font-weight: 600; margin-left: 0.4rem; }
+    .tag-best  { background: #1e3a1e; color: var(--green); }
+    .tag-value { background: #2a1f00; color: var(--yellow); }
+    .tag-cheap { background: #0f2233; color: #38bdf8; }
+
     footer {
       text-align: center;
       padding: 2rem;
@@ -206,6 +249,23 @@
   <div id="content" style="display:none">
     <p class="section-title">Model Rankings</p>
     <div class="model-cards" id="model-cards"></div>
+
+    <p class="section-title">Quick Snapshot</p>
+    <div class="snapshot-wrap">
+      <table class="snapshot-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Model</th>
+            <th>RDAB Score</th>
+            <th>Tasks</th>
+            <th>Avg Cost / Task</th>
+            <th>Provider</th>
+          </tr>
+        </thead>
+        <tbody id="snapshot-body"></tbody>
+      </table>
+    </div>
 
     <p class="section-title">All Runs</p>
     <div class="filters" id="filters">
@@ -297,6 +357,7 @@
         });
 
       renderModelCards(data.model_summary);
+      renderSnapshot(data.model_summary);
       allRuns = data.runs;
 
       // Dynamic footer
@@ -311,6 +372,46 @@
       el.style.display = 'block';
       el.textContent = 'Could not load results.json — ' + e.message;
     }
+  }
+
+  const PROVIDER_LABELS = {
+    anthropic: 'Anthropic', openai: 'OpenAI', google: 'Google',
+    xai: 'xAI', groq: 'Groq', deepseek: 'DeepSeek',
+  };
+
+  function renderSnapshot(summaries) {
+    const best = summaries[0];
+    // cheapest among models with ≥5 tasks (exclude tiny sample sizes)
+    const eligible = summaries.filter(s => s.tasks_run >= 5);
+    const cheapest = [...eligible].sort((a, b) => a.avg_cost_usd - b.avg_cost_usd)[0];
+    // best value = score / cost (among eligible)
+    const bestValue = [...eligible].sort((a, b) =>
+      (b.avg_dab_score / (b.avg_cost_usd || 0.0001)) - (a.avg_dab_score / (a.avg_cost_usd || 0.0001))
+    )[0];
+
+    const tbody = document.getElementById('snapshot-body');
+    tbody.innerHTML = summaries.map((s, i) => {
+      const pct = Math.round(s.avg_dab_score * 100);
+      const provider = PROVIDER_LABELS[modelProvider(s.model)] || 'Other';
+      const tags = [];
+      if (s.model === best.model)      tags.push('<span class="tag tag-best">Top Score</span>');
+      if (s.model === bestValue.model) tags.push('<span class="tag tag-value">Best Value</span>');
+      if (s.model === cheapest.model)  tags.push('<span class="tag tag-cheap">Cheapest</span>');
+      return `
+        <tr>
+          <td class="snap-rank">${i + 1}</td>
+          <td class="snap-model">${s.model}${tags.join('')}</td>
+          <td>
+            <div class="snap-bar-wrap">
+              <div class="snap-bar"><div class="snap-bar-fill" style="width:${pct}%"></div></div>
+              <span class="snap-score">${s.avg_dab_score.toFixed(3)}</span>
+            </div>
+          </td>
+          <td class="snap-tasks">${s.tasks_run} / 23</td>
+          <td class="snap-cost">$${s.avg_cost_usd.toFixed(4)}</td>
+          <td style="color:var(--muted);font-size:0.78rem">${provider}</td>
+        </tr>`;
+    }).join('');
   }
 
   function renderModelCards(summaries) {
