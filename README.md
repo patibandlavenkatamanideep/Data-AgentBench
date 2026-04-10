@@ -100,13 +100,23 @@ dab run eda_001 --model gpt-4o
 dab run eda_001 --model gpt-4o-mini
 dab run eda_001 --model haiku
 
-# 7. Score the result
+# 7. Run with Groq (free tier — no credit card needed)
+#    Get your key at https://console.groq.com, add GROQ_API_KEY to .env
+dab run eda_001 --model groq              # llama-3.3-70b-versatile
+dab run eda_001 --model llama-8b          # fastest, cheapest
+dab run eda_001 --model mixtral           # mixtral-8x7b-32768
+
+# 8. Cap spend with --budget (stops run if cost exceeds limit)
+dab run eda_001 --model gpt-4o --budget 0.05
+dab run --all --model groq --budget 0.10
+
+# 9. Score the result
 dab score outputs/eda_001_<timestamp>.json
 
-# 8. Run all tasks with one model
+# 10. Run all tasks with one model
 dab run --all --model gpt-4o-mini
 
-# 9. See all supported models + API key status
+# 11. See all supported models + API key status
 dab models
 ```
 

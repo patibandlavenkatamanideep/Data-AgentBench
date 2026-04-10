@@ -1,10 +1,10 @@
-"""Claude agentic loop — now delegates to providers.py for multi-model support."""
+"""Agentic loop — delegates to providers.py for multi-model support."""
 
 from __future__ import annotations
 
 import pandas as pd
 
-from .providers import get_provider, resolve_model
+from .providers import BudgetExceededError, get_provider, resolve_model
 from .tracer import Trace, Tracer
 
 DEFAULT_MODEL = "claude-sonnet-4-6"
@@ -24,6 +24,7 @@ class Agent:
         max_steps: int = 10,
         timeout_seconds: int = 120,
         allowed_tools: list[str] | None = None,
+        budget: float | None = None,
     ) -> Trace:
         tracer = Tracer(task_id=task_id, model=self.model)
         provider = get_provider(self.model)
@@ -35,11 +36,15 @@ class Agent:
                 max_steps=max_steps,
                 allowed_tools=allowed_tools,
                 tracer=tracer,
+                budget=budget,
             )
             error = None
             steps = len(tracer.trace.steps)
             if steps >= max_steps:
                 error = f"Reached max_steps={max_steps} without end_turn"
+        except BudgetExceededError as e:
+            final_answer = ""
+            error = str(e)
         except Exception as e:
             final_answer = ""
             error = str(e)

@@ -95,18 +95,30 @@ def inspect_task(task_id):
 @click.option("--model", "-m", default="claude-sonnet-4-6", show_default=True)
 @click.option("--output-dir", "-o", default="outputs", show_default=True)
 @click.option("--dry-run", is_flag=True, help="Load dataset and validate without calling API")
-def run(task_id, run_all, difficulty, model, output_dir, dry_run):
+@click.option(
+    "--budget",
+    type=float,
+    default=None,
+    metavar="USD",
+    help="Stop the run if estimated cost exceeds this amount in USD (e.g. --budget 0.05).",
+)
+def run(task_id, run_all, difficulty, model, output_dir, dry_run, budget):
     """Run a task (or all tasks) through the agent."""
     from .core.registry import TaskRegistry
     from .harness.runner import Runner
 
     tasks_dir = Path(__file__).parent.parent / "tasks"
     registry = TaskRegistry(tasks_dir)
+
+    if budget is not None:
+        console.print(f"[dim]Budget cap: ${budget:.2f} per task[/dim]")
+
     runner = Runner(
         registry=registry,
         model=model,
         output_dir=output_dir,
         dry_run=dry_run,
+        budget=budget,
     )
 
     if run_all:
@@ -188,24 +200,31 @@ def score(result_file, task_id):
 @cli.command("models")
 def list_models():
     """Show supported models and which API keys are configured."""
-    from .harness.providers import ANTHROPIC_MODELS, OPENAI_MODELS
+    from .harness.providers import ANTHROPIC_MODELS, GROQ_MODELS, OPENAI_MODELS
 
     table = Table(title="Supported Models", show_lines=True)
     table.add_column("Model", style="cyan")
     table.add_column("Provider")
     table.add_column("API Key")
+    table.add_column("Free tier?")
 
-    import os
     ant_key = "✓ set" if os.environ.get("ANTHROPIC_API_KEY") else "[red]✗ missing[/red]"
     oai_key = "✓ set" if os.environ.get("OPENAI_API_KEY") else "[red]✗ missing[/red]"
+    groq_key = "✓ set" if os.environ.get("GROQ_API_KEY") else "[red]✗ missing[/red]"
 
-    for m in sorted(ANTHROPIC_MODELS - {"claude", "sonnet", "opus", "haiku"}):
-        table.add_row(m, "Anthropic", ant_key)
-    for m in sorted(OPENAI_MODELS - {"gpt4o"}):
-        table.add_row(m, "OpenAI", oai_key)
+    _aliases = {"claude", "sonnet", "opus", "haiku", "gpt4o",
+                "groq", "llama", "llama-70b", "llama-8b", "mixtral"}
+
+    for m in sorted(ANTHROPIC_MODELS - _aliases):
+        table.add_row(m, "Anthropic", ant_key, "No")
+    for m in sorted(OPENAI_MODELS - _aliases):
+        table.add_row(m, "OpenAI", oai_key, "No")
+    for m in sorted(GROQ_MODELS - _aliases):
+        table.add_row(m, "Groq", groq_key, "[green]Yes[/green]")
 
     console.print(table)
-    console.print("\n[dim]Usage: dab run eda_001 --model gpt-4o[/dim]")
+    console.print("\n[dim]Groq free tier: https://console.groq.com — no credit card needed[/dim]")
+    console.print("[dim]Usage: dab run eda_001 --model groq --budget 0.05[/dim]")
 
 
 if __name__ == "__main__":

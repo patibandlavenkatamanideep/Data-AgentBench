@@ -24,6 +24,7 @@ class Runner:
         output_dir: Path | str = "outputs",
         api_key: str | None = None,
         dry_run: bool = False,
+        budget: float | None = None,
     ):
         self.registry = registry
         self.model = model
@@ -31,6 +32,7 @@ class Runner:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.agent = Agent(model=model, api_key=api_key)
         self.dry_run = dry_run
+        self.budget = budget
 
     def run_task(self, task_id: str) -> dict:
         task = self.registry.get(task_id)
@@ -46,6 +48,7 @@ class Runner:
             max_steps=task.evaluation.max_steps,
             timeout_seconds=task.evaluation.timeout_seconds,
             allowed_tools=task.evaluation.allowed_tools,
+            budget=self.budget,
         )
 
         result = self._build_result(task, trace, df)
