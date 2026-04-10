@@ -300,7 +300,6 @@
       allRuns = data.runs;
 
       // Dynamic footer
-      const taskCount = new Set(data.runs.map(r => r.task_id)).size;
       const modelCount = new Set(data.runs.map(r => r.model)).size;
       document.getElementById('footer-stats').textContent =
         `${taskCount} tasks · ${modelCount} models · 4-dimension scoring`;
