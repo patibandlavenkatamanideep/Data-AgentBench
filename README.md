@@ -48,8 +48,6 @@ An agent can score **1.0 on correctness and 0.2 on statistical validity** — an
 
 ---
 
----
-
 ## 🔍 Key Findings
 
 From 163 runs across 10 models and 23 tasks — patterns observed in actual benchmark output, not hypothetical.
@@ -419,6 +417,12 @@ RDAB helps teams identify the most cost-effective model for statistically sound 
 GPT-5 leads — but GPT-4.1 scores within 3% at **15× lower cost** and **14× better Score/$**. GPT-4o-mini scores within 4% of GPT-5 at **150× lower cost**. For a team running hundreds of analysis tasks a week, that compounds fast.
 
 > **Bottom line:** The best model for your use case isn't always the most expensive one. Run RDAB on your own data, check the cost column, and choose accordingly.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
 
 ---
 
