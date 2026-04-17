@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-04-17T08:30:13.029616+00:00",
-  "total_runs": 234,
+  "generated_at": "2026-04-17T08:46:24.424820+00:00",
+  "total_runs": 241,
   "model_summary": [
     {
       "model": "gpt-4.1-mini",
@@ -53,10 +53,10 @@
     },
     {
       "model": "gpt-4o-mini",
-      "avg_dab_score": 0.759,
-      "avg_cost_usd": 0.016214,
-      "total_cost_usd": 0.3243,
-      "tasks_run": 20
+      "avg_dab_score": 0.7559,
+      "avg_cost_usd": 0.0169,
+      "total_cost_usd": 0.3887,
+      "tasks_run": 23
     },
     {
       "model": "claude-opus-4-6",
@@ -64,6 +64,13 @@
       "avg_cost_usd": 1.919704,
       "total_cost_usd": 32.635,
       "tasks_run": 17
+    },
+    {
+      "model": "gpt-4.1-nano",
+      "avg_dab_score": 0.6418,
+      "avg_cost_usd": 0.012636,
+      "total_cost_usd": 0.2906,
+      "tasks_run": 23
     },
     {
       "model": "gemini-2.5-flash",
@@ -78,13 +85,6 @@
       "avg_cost_usd": 0.002431,
       "total_cost_usd": 0.0559,
       "tasks_run": 23
-    },
-    {
-      "model": "gpt-4.1-nano",
-      "avg_dab_score": 0.6241,
-      "avg_cost_usd": 0.010314,
-      "total_cost_usd": 0.196,
-      "tasks_run": 19
     }
   ],
   "runs": [
@@ -1281,6 +1281,24 @@
       "title": "Datetime Feature Extraction for Retail Sales",
       "difficulty": "medium",
       "category": "feature_engineering",
+      "model": "gpt-4.1-nano",
+      "run_at": "2026-04-17T08:44:20.842477+00:00",
+      "correctness": 0.75,
+      "code_quality": 0.5,
+      "efficiency": 0.0,
+      "stat_validity": 0.5,
+      "dab_score": 0.5375,
+      "total_tokens": 800091,
+      "input_tokens": 798422,
+      "output_tokens": 1669,
+      "cost_usd": 0.08051,
+      "num_steps": 176
+    },
+    {
+      "task_id": "feat_003",
+      "title": "Datetime Feature Extraction for Retail Sales",
+      "difficulty": "medium",
+      "category": "feature_engineering",
       "model": "gpt-4o",
       "run_at": "2026-04-09T09:51:16.334646+00:00",
       "correctness": 1.0,
@@ -1911,6 +1929,24 @@
       "title": "Data Leakage Detection in Model Selection",
       "difficulty": "easy",
       "category": "ml_engineering",
+      "model": "gpt-4o-mini",
+      "run_at": "2026-04-17T08:38:38.001893+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.6154,
+      "efficiency": 0.0,
+      "stat_validity": 0.75,
+      "dab_score": 0.7606,
+      "total_tokens": 261976,
+      "input_tokens": 253779,
+      "output_tokens": 8197,
+      "cost_usd": 0.042985,
+      "num_steps": 82
+    },
+    {
+      "task_id": "mod_001",
+      "title": "Data Leakage Detection in Model Selection",
+      "difficulty": "easy",
+      "category": "ml_engineering",
       "model": "gpt-5",
       "run_at": "2026-04-10T12:51:06.709352+00:00",
       "correctness": 1.0,
@@ -2415,6 +2451,24 @@
       "title": "Ensemble Voting vs Individual Models \u2014 Multi-Class Classification",
       "difficulty": "medium",
       "category": "ml_engineering",
+      "model": "gpt-4.1-nano",
+      "run_at": "2026-04-17T08:44:49.821826+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.8,
+      "efficiency": 0.5123,
+      "stat_validity": 0.5,
+      "dab_score": 0.7468,
+      "total_tokens": 85084,
+      "input_tokens": 83873,
+      "output_tokens": 1211,
+      "cost_usd": 0.008872,
+      "num_steps": 40
+    },
+    {
+      "task_id": "mod_004",
+      "title": "Ensemble Voting vs Individual Models \u2014 Multi-Class Classification",
+      "difficulty": "medium",
+      "category": "ml_engineering",
       "model": "gpt-4o",
       "run_at": "2026-04-09T19:31:47.551293+00:00",
       "correctness": 1.0,
@@ -2793,6 +2847,24 @@
       "title": "Logistic Regression for Diabetes Prediction",
       "difficulty": "easy",
       "category": "modeling",
+      "model": "gpt-4o-mini",
+      "run_at": "2026-04-17T08:39:33.422673+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.6,
+      "efficiency": 0.29,
+      "stat_validity": 0.5,
+      "dab_score": 0.6885,
+      "total_tokens": 48132,
+      "input_tokens": 44598,
+      "output_tokens": 3534,
+      "cost_usd": 0.00881,
+      "num_steps": 31
+    },
+    {
+      "task_id": "model_001",
+      "title": "Logistic Regression for Diabetes Prediction",
+      "difficulty": "easy",
+      "category": "modeling",
       "model": "gpt-5",
       "run_at": "2026-04-10T12:54:07.007432+00:00",
       "correctness": 1.0,
@@ -3135,6 +3207,24 @@
       "title": "Ridge vs Lasso Regression for Student Performance",
       "difficulty": "medium",
       "category": "modeling",
+      "model": "gpt-4o-mini",
+      "run_at": "2026-04-17T08:41:12.547591+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.6,
+      "efficiency": 0.7758,
+      "stat_validity": 0.5,
+      "dab_score": 0.7564,
+      "total_tokens": 66687,
+      "input_tokens": 60868,
+      "output_tokens": 5819,
+      "cost_usd": 0.012622,
+      "num_steps": 28
+    },
+    {
+      "task_id": "model_003",
+      "title": "Ridge vs Lasso Regression for Student Performance",
+      "difficulty": "medium",
+      "category": "modeling",
       "model": "gpt-5",
       "run_at": "2026-04-10T12:55:41.605435+00:00",
       "correctness": 1.0,
@@ -3417,6 +3507,24 @@
       "output_tokens": 8093,
       "cost_usd": 0.038106,
       "num_steps": 23
+    },
+    {
+      "task_id": "model_005",
+      "title": "Multi-Model Regression Pipeline for Energy Consumption",
+      "difficulty": "hard",
+      "category": "modeling",
+      "model": "gpt-4.1-nano",
+      "run_at": "2026-04-17T08:45:01.628797+00:00",
+      "correctness": 1.0,
+      "code_quality": 0.5,
+      "efficiency": 0.8537,
+      "stat_validity": 0.75,
+      "dab_score": 0.8281,
+      "total_tokens": 37313,
+      "input_tokens": 36764,
+      "output_tokens": 549,
+      "cost_usd": 0.003896,
+      "num_steps": 25
     },
     {
       "task_id": "model_005",
@@ -4047,6 +4155,24 @@
       "output_tokens": 1644,
       "cost_usd": 0.008184,
       "num_steps": 17
+    },
+    {
+      "task_id": "stat_004",
+      "title": "Time Series Decomposition \u2014 Sales Trend & Seasonality",
+      "difficulty": "medium",
+      "category": "statistical_inference",
+      "model": "gpt-4.1-nano",
+      "run_at": "2026-04-17T08:46:13.543319+00:00",
+      "correctness": 0.6667,
+      "code_quality": 0.5,
+      "efficiency": 1.0,
+      "stat_validity": 1.0,
+      "dab_score": 0.7917,
+      "total_tokens": 12722,
+      "input_tokens": 12362,
+      "output_tokens": 360,
+      "cost_usd": 0.00138,
+      "num_steps": 18
     },
     {
       "task_id": "stat_004",

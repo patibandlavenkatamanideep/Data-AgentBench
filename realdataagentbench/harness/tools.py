@@ -110,7 +110,7 @@ def get_column_stats(column_name: str, dataframe: pd.DataFrame) -> dict:
             "count": int(col.count()),
             "missing": int(dataframe[column_name].isnull().sum()),
             "unique": int(col.nunique()),
-            "top_values": col.value_counts().head(5).to_dict(),
+            "top_values": {str(k): int(v) for k, v in col.value_counts().head(5).items()},
         }
 
 

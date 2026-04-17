@@ -102,7 +102,15 @@ def inspect_task(task_id):
     metavar="USD",
     help="Stop the run if estimated cost exceeds this amount in USD (e.g. --budget 0.05).",
 )
-def run(task_id, run_all, difficulty, model, output_dir, dry_run, budget):
+@click.option(
+    "--max-steps",
+    "max_steps",
+    type=int,
+    default=None,
+    metavar="N",
+    help="Override the task YAML's max_steps limit (useful for models that need more steps).",
+)
+def run(task_id, run_all, difficulty, model, output_dir, dry_run, budget, max_steps):
     """Run a task (or all tasks) through the agent."""
     from .core.registry import TaskRegistry
     from .harness.runner import Runner
@@ -112,6 +120,8 @@ def run(task_id, run_all, difficulty, model, output_dir, dry_run, budget):
 
     if budget is not None:
         console.print(f"[dim]Budget cap: ${budget:.2f} per task[/dim]")
+    if max_steps is not None:
+        console.print(f"[dim]Max steps override: {max_steps}[/dim]")
 
     runner = Runner(
         registry=registry,
@@ -119,6 +129,7 @@ def run(task_id, run_all, difficulty, model, output_dir, dry_run, budget):
         output_dir=output_dir,
         dry_run=dry_run,
         budget=budget,
+        max_steps_override=max_steps,
     )
 
     if run_all:

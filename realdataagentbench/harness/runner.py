@@ -40,6 +40,7 @@ class Runner:
         api_key: str | None = None,
         dry_run: bool = False,
         budget: float | None = None,
+        max_steps_override: int | None = None,
     ):
         self.registry = registry
         self.model = resolve_model(model)  # store canonical name, not alias
@@ -48,6 +49,7 @@ class Runner:
         self.agent = Agent(model=model, api_key=api_key)
         self.dry_run = dry_run
         self.budget = budget
+        self.max_steps_override = max_steps_override
 
     def run_task(self, task_id: str) -> dict:
         task = self.registry.get(task_id)
@@ -56,11 +58,14 @@ class Runner:
         if self.dry_run:
             return self._dry_run_result(task, df)
 
+        max_steps = self.max_steps_override if self.max_steps_override is not None \
+            else task.evaluation.max_steps
+
         trace = self.agent.run(
             task_description=task.description,
             dataframe=df,
             task_id=task.task_id,
-            max_steps=task.evaluation.max_steps,
+            max_steps=max_steps,
             timeout_seconds=task.evaluation.timeout_seconds,
             allowed_tools=task.evaluation.allowed_tools,
             budget=self.budget,
