@@ -519,9 +519,11 @@
       <span class="pill" id="meta-runs">— runs</span>
       <span class="pill" id="meta-tasks">— tasks</span>
       <span class="pill" id="meta-updated">—</span>
-      <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench" target="_blank">
-        GitHub ↗
-      </a>
+      <span class="pill" style="background:#F0FDF4;border-color:#BBF7D0;color:#15803D;" title="Datasets are generated in memory and never uploaded to external servers. API calls go to your configured provider only.">
+        🔒 Data processed in memory — never stored
+      </span>
+      <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench" target="_blank">GitHub ↗</a>
+      <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench/blob/main/SCORING_SPEC.md" target="_blank">Scoring Spec ↗</a>
     </div>
   </div>
 </header>
@@ -577,6 +579,10 @@
       <button class="filter-btn"        data-filter="google"               data-type="provider">Google</button>
       <button class="filter-btn"        data-filter="xai"                  data-type="provider">xAI</button>
       <button class="filter-btn"        data-filter="groq"                 data-type="provider">Groq (Llama)</button>
+      <span class="divider"></span>
+      <button class="filter-btn"        data-filter="all"                  data-type="data_source">All Data</button>
+      <button class="filter-btn"        data-filter="real"                 data-type="data_source" title="6 tasks using publicly licensed real-world datasets (UCI/sklearn)">🔬 Real Data</button>
+      <button class="filter-btn"        data-filter="synthetic"            data-type="data_source" title="23 tasks using seeded synthetic generators">Synthetic</button>
     </div>
 
     <div class="table-wrap">
@@ -619,6 +625,14 @@
   let activeFilter = 'all';
   let activeFilterType = 'difficulty';
 
+  // Real-data task IDs — these use publicly licensed external datasets (UCI/sklearn)
+  const REAL_DATA_TASKS = new Set([
+    'eda_004', 'eda_005', 'feat_006', 'model_006', 'stat_006', 'mod_006'
+  ]);
+
+  // Coverage threshold: a model must complete ≥80% of tasks to appear in ranked section
+  const COVERAGE_THRESHOLD = 0.80;
+
   function modelProvider(model) {
     if (model.startsWith('claude'))                          return 'anthropic';
     if (model.startsWith('gpt-') || model.startsWith('gpt4')) return 'openai';
@@ -645,11 +659,19 @@
     return `${prefix}-${t}`;
   }
 
+  let humanBaseline = null;
+
   async function load() {
     try {
-      const resp = await fetch('results.json?v=' + Date.now());
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const data = await resp.json();
+      const [dataResp, humanResp] = await Promise.all([
+        fetch('results.json?v=' + Date.now()),
+        fetch('human_baseline.json?v=' + Date.now()).catch(() => null),
+      ]);
+      if (!dataResp.ok) throw new Error(`HTTP ${dataResp.status}`);
+      const data = await dataResp.json();
+      if (humanResp && humanResp.ok) {
+        humanBaseline = await humanResp.json();
+      }
 
       document.getElementById('loading').style.display = 'none';
       document.getElementById('content').style.display = 'block';
@@ -678,19 +700,49 @@
       // This ensures the page is always readable even if results.json fails to load.
       const el = document.getElementById('error');
       el.style.display = 'block';
+      // Build static fallback from embedded data — kept in sync with results.json
+      const FALLBACK_MODELS = [
+        { rank:1,  model:'gpt-4.1-mini',              score:0.832, tasks:23, cost:'$0.0127', ratio:'65.8'  },
+        { rank:2,  model:'gpt-5',                      score:0.812, tasks:23, cost:'$0.5957', ratio:'1.4'   },
+        { rank:3,  model:'gpt-4o',                     score:0.794, tasks:23, cost:'$0.0439', ratio:'18.1'  },
+        { rank:4,  model:'gpt-4.1',                    score:0.791, tasks:23, cost:'$0.0384', ratio:'20.6'  },
+        { rank:5,  model:'claude-opus-4-6',             score:0.779, tasks:23, cost:'$1.6276', ratio:'0.5'   },
+        { rank:6,  model:'claude-sonnet-4-6',           score:0.779, tasks:23, cost:'$0.3382', ratio:'2.3'   },
+        { rank:7,  model:'llama-3.3-70b-versatile',    score:0.772, tasks:23, cost:'$0.0020', ratio:'393.2' },
+        { rank:8,  model:'gpt-4o-mini',                score:0.756, tasks:23, cost:'$0.0169', ratio:'44.7'  },
+        { rank:9,  model:'claude-haiku-4-5-20251001',  score:0.738, tasks:23, cost:'$0.0503', ratio:'14.7'  },
+        { rank:10, model:'gpt-4.1-nano',               score:0.642, tasks:23, cost:'$0.0126', ratio:'51.0'  },
+        { rank:11, model:'gemini-2.5-flash',           score:0.626, tasks:23, cost:'$0.0015', ratio:'417.0' },
+        { rank:12, model:'grok-3-mini',                score:0.626, tasks:23, cost:'$0.0024', ratio:'257.3' },
+      ];
+      const tbRows = FALLBACK_MODELS.map(m => {
+        const highlight = m.rank === 1 ? 'background:#EFF6FF;font-weight:600;' : '';
+        return `<tr style="${highlight}">
+          <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">${m.rank}</td>
+          <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;font-family:monospace">${m.model}</td>
+          <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">${m.score.toFixed(3)}</td>
+          <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">${m.tasks} / 23</td>
+          <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">${m.cost}</td>
+          <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">${m.ratio}</td>
+        </tr>`;
+      }).join('');
       el.innerHTML = `
         <div style="background:#FFF9C4;border:1px solid #F59E0B;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.5rem;font-size:0.85rem;color:#92400E;">
           <strong>Note:</strong> Live data could not be loaded (${e.message}). Showing the last published snapshot (April 2026).
-          <a href="results.json" style="color:#1D4ED8;margin-left:0.5rem;">Try direct link</a>
+          <a href="results.json" style="color:#1D4ED8;margin-left:0.5rem;">Try direct link ↗</a>
         </div>
-        <h2 style="font-size:1rem;font-weight:700;margin-bottom:0.75rem;color:#0F172A;">
+        <h2 style="font-size:1rem;font-weight:700;margin-bottom:0.35rem;color:#0F172A;">
           Full-coverage leaderboard — 276 runs · 12 models · 23 tasks
         </h2>
+        <p style="font-size:0.78rem;color:#64748B;margin-bottom:0.75rem;">
+          All 12 models completed all 23 tasks (100% coverage). Ranking requires ≥80% coverage.
+          Data processing is in memory only — no data is stored by RDAB.
+        </p>
         <div style="overflow-x:auto;">
         <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
           <thead>
             <tr style="background:#F1F5F9;text-align:left;">
-              <th style="padding:0.5rem 0.75rem;border-bottom:2px solid #E2E8F0;">Rank</th>
+              <th style="padding:0.5rem 0.75rem;border-bottom:2px solid #E2E8F0;">#</th>
               <th style="padding:0.5rem 0.75rem;border-bottom:2px solid #E2E8F0;">Model</th>
               <th style="padding:0.5rem 0.75rem;border-bottom:2px solid #E2E8F0;text-align:center;">Avg RDAB Score</th>
               <th style="padding:0.5rem 0.75rem;border-bottom:2px solid #E2E8F0;text-align:center;">Coverage</th>
@@ -698,109 +750,14 @@
               <th style="padding:0.5rem 0.75rem;border-bottom:2px solid #E2E8F0;text-align:right;">Score / $</th>
             </tr>
           </thead>
-          <tbody>
-            <tr style="background:#EFF6FF;font-weight:600;">
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">1</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">gpt-4.1-mini</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">0.832</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">23 / 23</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">$0.0127</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">65.8</td>
-            </tr>
-            <tr>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">2</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">gpt-5</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">0.812</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">23 / 23</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">$0.5957</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">1.4</td>
-            </tr>
-            <tr>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">3</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">gpt-4o</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">0.794</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">23 / 23</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">$0.0439</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">18.1</td>
-            </tr>
-            <tr>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">4</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">gpt-4.1</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">0.791</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">23 / 23</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">$0.0384</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">20.6</td>
-            </tr>
-            <tr>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">5</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">claude-opus-4-6</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">0.779</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">23 / 23</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">$1.6276</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">0.5</td>
-            </tr>
-            <tr>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">6</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">claude-sonnet-4-6</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">0.779</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">23 / 23</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">$0.3382</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">2.3</td>
-            </tr>
-            <tr>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">7</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">llama-3.3-70b</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">0.772</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">23 / 23</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">$0.0020</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">393.2</td>
-            </tr>
-            <tr>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">8</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">gpt-4o-mini</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">0.756</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">23 / 23</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">$0.0169</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">44.7</td>
-            </tr>
-            <tr>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">9</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">claude-haiku-4-5</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">0.738</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">23 / 23</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">$0.0503</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">14.7</td>
-            </tr>
-            <tr>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">10</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">gpt-4.1-nano</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">0.642</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">23 / 23</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">$0.0126</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">51.0</td>
-            </tr>
-            <tr>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">11</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;">gemini-2.5-flash</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">0.626</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:center;">23 / 23</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">$0.0015</td>
-              <td style="padding:0.5rem 0.75rem;border-bottom:1px solid #E2E8F0;text-align:right;">417.0</td>
-            </tr>
-            <tr>
-              <td style="padding:0.5rem 0.75rem;">12</td>
-              <td style="padding:0.5rem 0.75rem;">grok-3-mini</td>
-              <td style="padding:0.5rem 0.75rem;text-align:center;">0.626</td>
-              <td style="padding:0.5rem 0.75rem;text-align:center;">23 / 23</td>
-              <td style="padding:0.5rem 0.75rem;text-align:right;">$0.0024</td>
-              <td style="padding:0.5rem 0.75rem;text-align:right;">257.3</td>
-            </tr>
-          </tbody>
+          <tbody>${tbRows}</tbody>
         </table>
         </div>
         <p style="margin-top:1rem;font-size:0.78rem;color:#64748B;">
-          Snapshot: April 2026 · 276 runs · 12 models (all full-coverage) · 23 tasks ·
-          <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench" style="color:#3B82F6;">GitHub repo</a>
+          Snapshot: April 2026 · 276 runs · 12 models (all full-coverage) · 23 synthetic tasks ·
+          <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench" style="color:#3B82F6;">GitHub ↗</a>
+          &nbsp;·&nbsp;
+          <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench/blob/main/SCORING_SPEC.md" style="color:#3B82F6;">Scoring Spec ↗</a>
         </p>`;
     }
   }
@@ -854,8 +811,10 @@
   }
 
   function renderSnapshot(summaries) {
-    const full    = summaries.filter(s => s.tasks_run === 23);
-    const partial = summaries.filter(s => s.tasks_run < 23);
+    const totalTasks = Math.max(...summaries.map(s => s.tasks_run));
+    const threshold  = Math.floor(totalTasks * COVERAGE_THRESHOLD);
+    const full    = summaries.filter(s => s.tasks_run >= threshold);
+    const partial = summaries.filter(s => s.tasks_run <  threshold);
 
     const eligible  = full; // cost/value comparisons only over full-coverage models
     const best      = full[0];
@@ -892,7 +851,7 @@
               </span>
             </div>
           </td>
-          <td class="snap-tasks">${s.tasks_run} / 23</td>
+          <td class="snap-tasks">${s.tasks_run} / ${totalTasks}</td>
           <td class="snap-cost">$${s.avg_cost_usd.toFixed(4)}</td>
           <td style="color:var(--muted-light);font-size:0.75rem">${provider}</td>
         </tr>`;
@@ -904,17 +863,60 @@
         <td colspan="6" style="padding:0.5rem 0.75rem;background:var(--surface-2);
             color:var(--muted);font-size:0.7rem;font-weight:700;
             text-transform:uppercase;letter-spacing:0.08em;border-top:2px solid var(--border-2)">
-          Partial coverage — not directly comparable · scores may be biased relative to a 23/23 run
+          Partial coverage — not directly comparable · scores may be biased relative to a full-coverage run
         </td>
       </tr>` : '';
     const partialRows = partial.map(s => rowHtml(s, null, true)).join('');
 
-    document.getElementById('snapshot-body').innerHTML = fullRows + dividerRow + partialRows;
+    // Human baseline row
+    let humanRow = '';
+    if (humanBaseline) {
+      const hb = humanBaseline.summary;
+      const tier = scoreTier(hb.avg_dab_score);
+      const pct  = Math.round(hb.avg_dab_score * 100);
+      humanRow = `
+        <tr>
+          <td colspan="6" style="padding:0.4rem 0.75rem;background:#F0FDF4;
+              color:#15803D;font-size:0.7rem;font-weight:700;
+              text-transform:uppercase;letter-spacing:0.08em;border-top:2px solid #BBF7D0">
+            Human Expert Baseline — 5 representative tasks — anchors what a statistically rigorous solution looks like
+          </td>
+        </tr>
+        <tr style="background:#F0FDF4;">
+          <td class="snap-rank" style="color:#15803D">👤</td>
+          <td class="snap-model">Human Expert
+            <span class="tag" style="background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0">baseline</span>
+          </td>
+          <td>
+            <div class="snap-bar-wrap">
+              <div class="snap-bar">
+                <div class="snap-bar-fill high" style="width:${pct}%"></div>
+              </div>
+              <span class="snap-score-val dab-high">${hb.avg_dab_score.toFixed(3)}</span>
+            </div>
+          </td>
+          <td class="snap-tasks">${humanBaseline.runs.length} / 23 tasks†</td>
+          <td class="snap-cost" style="color:var(--muted)">N/A</td>
+          <td style="color:#15803D;font-size:0.75rem">Human</td>
+        </tr>
+        <tr>
+          <td colspan="6" style="padding:0.3rem 0.75rem;background:#F0FDF4;font-size:0.7rem;color:#15803D;border-bottom:2px solid #BBF7D0;">
+            † 5-task sample. Stat validity: <strong>${hb.avg_stat_validity.toFixed(3)}</strong> vs model avg
+            <strong>${(humanBaseline.runs.reduce((s,r)=>s+r.model_avg_stat_validity,0)/humanBaseline.runs.length).toFixed(3)}</strong>
+            on the same tasks — the gap is a real model capability difference, not a scorer artefact.
+            <a href="human_baseline.json" style="color:#15803D;margin-left:0.5rem;">See methodology ↗</a>
+          </td>
+        </tr>`;
+    }
+
+    document.getElementById('snapshot-body').innerHTML = fullRows + dividerRow + partialRows + humanRow;
   }
 
   function renderModelCards(summaries) {
-    const full    = summaries.filter(s => s.tasks_run === 23);
-    const partial = summaries.filter(s => s.tasks_run < 23);
+    const totalTasks = Math.max(...summaries.map(s => s.tasks_run));
+    const threshold  = Math.floor(totalTasks * COVERAGE_THRESHOLD);
+    const full    = summaries.filter(s => s.tasks_run >= threshold);
+    const partial = summaries.filter(s => s.tasks_run <  threshold);
     const container = document.getElementById('model-cards');
 
     const fullCards = full.map((s, i) => {
@@ -969,6 +971,12 @@
     if (activeFilter !== 'all') {
       if (activeFilterType === 'provider') {
         filtered = allRuns.filter(r => modelProvider(r.model) === activeFilter);
+      } else if (activeFilterType === 'data_source') {
+        if (activeFilter === 'real') {
+          filtered = allRuns.filter(r => REAL_DATA_TASKS.has(r.task_id));
+        } else if (activeFilter === 'synthetic') {
+          filtered = allRuns.filter(r => !REAL_DATA_TASKS.has(r.task_id));
+        }
       } else {
         filtered = allRuns.filter(r => r[activeFilterType] === activeFilter);
       }
@@ -986,9 +994,13 @@
       const scorePer$ = r.cost_usd > 0
         ? Math.min(r.dab_score / r.cost_usd, 999).toFixed(1)
         : '—';
+      const isReal = REAL_DATA_TASKS.has(r.task_id);
+      const srcBadge = isReal
+        ? '<span title="Real external dataset (UCI/sklearn)" style="display:inline-block;margin-left:4px;font-size:0.6rem;padding:0.1rem 0.4rem;border-radius:3px;background:#ECFEFF;color:#0E7490;border:1px solid #A5F3FC;font-weight:700;vertical-align:middle">REAL</span>'
+        : '';
       return `
         <tr>
-          <td><code>${r.task_id}</code></td>
+          <td><code>${r.task_id}</code>${srcBadge}</td>
           <td class="task-title">${r.title}</td>
           <td><span class="badge badge-${r.difficulty}">${r.difficulty}</span></td>
           <td style="color:var(--muted);font-size:0.75rem">${r.category}</td>

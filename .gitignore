@@ -31,6 +31,7 @@ outputs/*.json
 # JSON everywhere else (keeps tasks/ and docs/ clean of accidental json files)
 *.json
 !docs/results.json
+!docs/human_baseline.json
 !docs/screenshots/*.json
 
 # macOS

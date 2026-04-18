@@ -62,11 +62,16 @@ def build(
         input_tokens = trace.get("total_input_tokens", 0)
         output_tokens = trace.get("total_output_tokens", 0)
         cost_usd = compute_cost(model, input_tokens, output_tokens)
+        # Classify real-data vs synthetic tasks (see SCORING_SPEC.md §11)
+        REAL_DATA_TASK_IDS = {
+            "eda_004", "eda_005", "feat_006", "model_006", "stat_006", "mod_006"
+        }
         rows.append({
             "task_id": task_id,
             "title": task.title,
             "difficulty": task.difficulty,
             "category": task.category,
+            "data_source": "real" if task_id in REAL_DATA_TASK_IDS else "synthetic",
             "model": model,
             "run_at": data.get("run_at", ""),
             "correctness": card.correctness,
