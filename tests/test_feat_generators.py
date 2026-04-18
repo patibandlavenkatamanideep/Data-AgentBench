@@ -58,7 +58,7 @@ class TestEmployeeAttritionGenerator:
 
     def test_categorical_columns(self):
         df = gen_attrition()
-        cats = df.select_dtypes(include=["object", "str"]).columns.tolist()
+        cats = df.select_dtypes(include=["object"]).columns.tolist()
         assert "department" in cats
         assert "gender" in cats
         assert "overtime" in cats
@@ -183,12 +183,12 @@ class TestFeatTaskLoading:
 
     def test_registry_total_count(self):
         registry = TaskRegistry(TASKS_DIR)
-        assert len(registry) == 23  # 18 existing + 5 ml_engineering
+        assert len(registry) == 29
 
     def test_filter_by_category(self):
         registry = TaskRegistry(TASKS_DIR)
         feat_tasks = registry.filter(category="feature_engineering")
-        assert len(feat_tasks) == 5
+        assert len(feat_tasks) == 6
 
     def test_feat_generators_registered(self):
         for name in ["house_prices", "employee_attrition", "retail_sales",
