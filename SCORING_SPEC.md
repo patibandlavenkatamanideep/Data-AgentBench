@@ -1,74 +1,57 @@
 # SCORING_SPEC — RealDataAgentBench Scoring Specification
 
-**Version:** 1.1 (April 2026)  
-**Status:** Current — applies to all 227 runs in the v0.1.0 leaderboard, and all runs thereafter.  
+**Version:** 1.2 (April 2026)
+**Status:** Current — applies to all 227 runs in the v0.1.0 leaderboard, and all runs thereafter.
 **Source of truth:** `realdataagentbench/scoring/`
 
-> This document exists so that any reviewer, researcher, or contributor can
-> independently reproduce any score in the leaderboard without reading source code.
-> Every formula, threshold, regex, and edge case is stated here explicitly.
+---
+
+## What This Document Is
+
+RealDataAgentBench evaluates AI agents on real data science tasks. This document explains, in plain English, exactly how every score in the leaderboard is computed — including the formulas, the thresholds, and the known weaknesses of the current approach. The goal is transparency: any researcher, recruiter, or contributor should be able to read this document and independently verify any score without ever touching the source code.
 
 ---
 
-## 1. Overview
+## Overview: The Four Dimensions
 
-Each agent run produces a JSON trace file containing:
-- `trace.final_answer` — the agent's written response to the task
-- `trace.steps[]` — each tool call with `tool_name`, `tool_input`, and `tool_output`
-- `trace.total_input_tokens`, `trace.total_output_tokens`
-- `trace.num_steps`
-- `trace.error` — non-null if the run terminated in an error
+Each agent run is scored on four independent dimensions that together reflect what it means to do data science well. **Correctness** asks whether the agent found the right answer. **Code Quality** asks whether the agent's code follows sound data science practices — using vectorized operations, avoiding raw loops, naming things clearly. **Efficiency** asks whether the agent reached its answer without excessive token usage or unnecessary steps. **Statistical Validity** asks whether the agent reasoned about its findings rigorously — reporting uncertainty, naming the right statistical methods, and interpreting results carefully.
 
-The `CompositeScorer` (`scoring/composite.py`) extracts these fields and passes them to four independent sub-scorers. The final **RDAB Score** is their weighted sum using per-task weights defined in each task's YAML.
+These four dimensions are combined into a single **RDAB Score** using per-task weights that reflect which dimension matters most for that task type:
 
 ```
-RDAB Score = correctness  × w_c
-           + code_quality × w_q
-           + efficiency   × w_e
-           + stat_validity × w_s
+RDAB Score = (correctness × w_c) + (code_quality × w_q) + (efficiency × w_e) + (stat_validity × w_s)
 ```
 
-Where `w_c + w_q + w_e + w_s = 1.00` for every task.
+Weights always sum to 1.00 for every task and are defined in the task's YAML file.
 
 ---
 
-## 2. Correctness Scorer
+## 1. Correctness
 
-**Source:** `scoring/correctness.py`  
-**Range:** 0.0–1.0 (float, rounded to 4 decimal places)  
-**Input:** `trace.final_answer` (string), `task.ground_truth` (dict from YAML)
+**Range:** 0.0–1.0
+**What it measures:** Does the agent's final written answer contain the correct conclusions for this task?
 
-### 2.1 Algorithm
+### Intent
 
-The scorer iterates over every key in `ground_truth` (excluding `*_aliases` and `*_tolerance` / `*_approx` suffix keys — those are consumed by their primary key). For each key it runs one check:
+This dimension checks whether the agent's final response contains the expected facts, values, and directions — as defined by each task's `ground_truth` YAML block. It is intentionally broad: an answer that says "the income distribution is right-skewed with a skewness of approximately 3.9" passes even if phrased differently from the reference answer. Ground truth entries can specify synonyms (aliases) and numeric tolerances so that paraphrase and rounding do not penalize a correct answer.
 
-| Value type | Check |
+### How it works
+
+The scorer iterates over every key in the task's `ground_truth` block. For each key, it runs one of these checks:
+
+| Value type | How it's checked |
 |---|---|
-| `str` | Does the primary value OR any alias in `{key}_aliases` appear as a substring in `answer.lower()`? |
-| `list[str]` | Does **every** string in the list appear in `answer.lower()`? |
-| `bool (True)` | Do any aliases in `{key}_aliases` appear in `answer.lower()`? (Only checked when value is `True`) |
-| `float/int` with `{key}_approx` | Is there any numeric token in the answer within `tolerance` of `approx`? Default tolerance = 15% of approx if not specified. |
-| `float/int` without `{key}_approx` | Skipped — raw numeric keys without `_approx` are metadata only. |
+| String | Does the primary value or any alias appear anywhere in the lowercased answer? |
+| List of strings | Does **every** string in the list appear in the answer? |
+| Boolean (`True`) | Does any alias for this key appear in the answer? |
+| Numeric with tolerance | Does any number in the answer fall within the stated tolerance of the target value? |
 
-All checks are Boolean. The final score is `sum(checks) / len(checks)`.
+The final correctness score is the fraction of checks that pass.
 
-### 2.2 Numeric matching
+**Numeric tolerance example:** If the ground truth specifies `skewness_value_approx: 3.82` with a `skewness_tolerance: 0.5`, then any numeric value between 3.32 and 4.32 found anywhere in the answer will pass. Numbers are extracted with the pattern `[-+]?\d+\.?\d*`.
 
-```python
-# Any float literal in the answer is extracted with:
-pattern = r"[-+]?\d+\.?\d*"
-
-# A match passes if:
-abs(candidate_value - target_approx) <= tolerance
-```
-
-Example: if `ground_truth["skewness_value_approx"] = 3.82` with `skewness_tolerance = 0.5`,
-then any value in [3.32, 4.32] that appears as a number in the answer passes.
-
-### 2.3 Alias expansion
-
+**Alias example:**
 ```yaml
-# In the task YAML:
 ground_truth:
   skewness_direction: "right"
   skewness_direction_aliases:
@@ -76,292 +59,243 @@ ground_truth:
     - "positively skewed"
     - "positive skew"
 ```
+The answer passes if it contains "right", "right-skewed", "positively skewed", or "positive skew" — any one of them is sufficient.
 
-The scorer checks: does `"right"` OR `"right-skewed"` OR `"positively skewed"` OR `"positive skew"` appear in `answer.lower()`?
+### Pass vs. fail examples
 
-### 2.4 Known limitations
+**Passes (score: 1.0):**
+> "The income distribution is strongly right-skewed (skewness ≈ 3.85). A log transformation is recommended before modeling."
 
-- **Verbose outputs can pass by inclusion.** A model that outputs a large dump of numbers will satisfy numeric checks as a side-effect of verbosity. This is most relevant to EDA tasks where correctness is partially numeric.
-- **String checks are substring, not exact.** An answer that contains "right-skewed income distribution" passes the `skewness_direction` check even if it then incorrectly recommends no transformation.
-- **No semantic understanding.** The scorer cannot detect contradictions in the final answer.
+This passes because "right-skewed" matches the alias list and 3.85 falls within the 0.5 tolerance of 3.82.
 
----
+**Fails (score: 0.0):**
+> "I analyzed the dataset and computed several statistics. The data has interesting properties worth exploring."
 
-## 3. Code Quality Scorer
+No numeric value near 3.82 appears, and no skewness direction word is present.
 
-**Source:** `scoring/code_quality.py`  
-**Range:** 0.0–1.0 (float, rounded to 4 decimal places)  
-**Input:** list of code strings extracted from `tool_name == "run_code"` steps in the trace
+### Honest limitations
 
-### 3.1 Algorithm
-
-Each `run_code` call is scored independently. If multiple code snippets exist, the final score is the mean over all snippets. If no code snippets exist, the score is `0.5` (neutral).
-
-Five binary checks are applied per snippet:
-
-#### Check 1 — Vectorized operations (`uses_vectorized_ops`)
-
-**Passes if** any of these regex patterns match the code:
-
-```python
-r"df\["           # pandas column access
-r"\.mean\(\)"     # pandas/numpy aggregation
-r"\.std\(\)"
-r"\.sum\(\)"
-r"\.corr\("
-r"\.groupby\("
-r"np\."           # any numpy operation
-r"stats\."        # any scipy.stats operation
-```
-
-**Intent:** Rewards code that uses pandas/numpy vectorized operations rather than manual Python logic.
-
-#### Check 2 — Avoids raw loops (`avoids_raw_loops`)
-
-**Passes if none** of these patterns match:
-
-```python
-r"\bfor\s+\w+\s+in\s+range\("   # for i in range(n) — raw index loop
-r"\bwhile\s+True"               # infinite loop pattern
-```
-
-**Intent:** Penalizes row-by-row iteration in Python when a vectorized equivalent exists. Note: `for col in df.columns` does NOT trigger this check — only `range()`-based loops.
-
-#### Check 3 — Descriptive variable names (`uses_descriptive_names`)
-
-**Passes if** there are **zero** single-letter variable assignments (excluding `i`, `n`, `df`, and `x`):
-
-```python
-single_letter = re.findall(r"\b([a-eg-moq-wyz])\s*=", code)
-passes = len(single_letter) == 0
-```
-
-**Excluded from flagging:** `i` (loop index), `n` (sample size), `df` (dataframe convention), `x` (axis). All others (e.g., `a = ...`, `b = ...`, `c = ...`) count as non-descriptive.
-
-#### Check 4 — No magic numbers (`no_magic_numbers`)
-
-**Passes if** there are ≤2 bare numeric literals ≥2 digits that are not 0, 1, 2, or 100:
-
-```python
-magic = re.findall(
-    r"(?<![=\w])\b(?!0\b|1\b|2\b|100\b)\d{2,}\b(?!\s*[=\w])", code
-)
-passes = len(magic) <= 2
-```
-
-**Intent:** Allows common constants (`42` as a seed, `80` in an 80/20 split) but flags repeated bare literals that should be named constants. The threshold of ≤2 is permissive by design.
-
-#### Check 5 — Has print output (`has_print_output`)
-
-**Passes if** `"print("` appears anywhere in the code.
-
-**Intent:** Ensures the agent produces visible output during execution, not just silent computation.
-
-### 3.2 Score formula
-
-```python
-checks = [vectorized, no_loops, descriptive, no_magic, has_print]
-score = sum(checks) / 5   # per snippet
-final_score = mean(scores_per_snippet)
-```
-
-### 3.3 Known limitations
-
-- **Evaluates syntax, not correctness.** A snippet can score 1.0 for code quality while computing the wrong answer.
-- **Check 3 regex matches assignment context only.** A single-letter variable used only in indexing (`df[a]`) may not be flagged.
-- **Multi-snippet averaging.** A model that writes one good snippet and one bad snippet will average them. This can mask systematic quality issues in later tool calls.
+- **Verbose outputs can pass by accident.** An agent that dumps a large table of numbers may incidentally include a value near the target. This is most relevant to EDA tasks with numeric ground truth.
+- **Substring matching is not semantic understanding.** An answer that says "right-skewed income distribution — no transformation needed" still passes the direction check, even though the recommendation contradicts the correct action.
+- **No contradiction detection.** The scorer cannot identify cases where a model gives a correct fact in one sentence and a conflicting fact in another.
 
 ---
 
-## 4. Efficiency Scorer
+## 2. Code Quality
 
-**Source:** `scoring/efficiency.py`  
-**Range:** 0.0–1.0 (float, rounded to 4 decimal places)  
-**Input:** `total_tokens`, `steps_used`, `max_steps`, `difficulty`, `has_error`
+**Range:** 0.0–1.0
+**What it measures:** Does the agent's code follow sound data science coding practices?
 
-### 4.1 Token budgets
+### Intent
 
-Calibrated from observed Claude Sonnet 4.6 runs (the baseline model used during development):
+Good data science code should use vectorized libraries (pandas, numpy) rather than slow Python loops, use descriptive variable names, avoid unexplained magic numbers, and produce visible output. This dimension penalizes lazy or opaque code — not because style is cosmetic, but because code quality correlates with reliability and maintainability. Each block of code the agent runs is scored on five binary checks; the final score is the average across all code blocks.
+
+If an agent writes no code at all, it receives a neutral score of 0.5.
+
+### The five checks
+
+#### Check 1: Uses vectorized operations
+
+**Intent:** Rewards agents that use pandas/numpy operations rather than reimplementing statistics manually.
+
+Passes if the code contains any of: `df["..."]`, `.mean()`, `.std()`, `.sum()`, `.corr(`, `.groupby(`, `np.`, `stats.`
+
+**Passes:** `skewness = df["income"].skew()`
+**Fails:** `total = 0; for val in values: total += val; mean = total / len(values)`
+
+#### Check 2: Avoids raw index loops
+
+**Intent:** Penalizes row-by-row iteration when a vectorized alternative exists. Only `range()`-based loops are flagged — iterating over columns (`for col in df.columns`) is acceptable.
+
+Passes if the code does **not** contain `for i in range(n)` or `while True`.
+
+**Passes:** `for col in df.select_dtypes("number").columns:`
+**Fails:** `for i in range(len(df)): result[i] = df.iloc[i]["income"] * 2`
+
+#### Check 3: Descriptive variable names
+
+**Intent:** Single-letter variable names (other than conventional exceptions) make code harder to review and debug.
+
+Passes if there are zero single-letter variable assignments outside of `i`, `n`, `df`, and `x`.
+
+**Passes:** `income_mean = df["income"].mean()`
+**Fails:** `a = df["income"].mean(); b = df["age"].std()`
+
+#### Check 4: No magic numbers
+
+**Intent:** Bare numeric literals that appear without explanation are a code smell. Named constants communicate intent.
+
+Passes if there are ≤2 bare numeric literals ≥2 digits that are not 0, 1, 2, or 100. The threshold of ≤2 is deliberately permissive to allow a seed value and one domain constant.
+
+**Passes:** `TRAIN_SPLIT = 0.8; X_train, X_test = train_test_split(X, test_size=1-TRAIN_SPLIT, random_state=42)`
+**Fails:** `X_train = X[:1200]; X_test = X[1200:1500]; val = X[1500:1800]`
+
+#### Check 5: Produces visible output
+
+**Intent:** Ensures the agent's code prints results rather than computing silently. Silent code cannot be verified by inspection of the run trace.
+
+Passes if `print(` appears anywhere in the code block.
+
+**Passes:** `print(f"Skewness: {df['income'].skew():.4f}")`
+**Fails:** `result = df["income"].describe()` *(no print)*
+
+### Score formula
+
+```
+score per snippet = (checks passed) / 5
+final code_quality = mean(scores across all run_code snippets)
+```
+
+### Honest limitations
+
+- **This evaluates form, not correctness.** A well-styled snippet can score 1.0 while computing the wrong statistic.
+- **Check 3 only flags assignments.** A single-letter variable used purely in indexing (`df[a]`) may not be caught.
+- **Multi-snippet averaging can mask quality degradation.** A model that writes clean code early but messy code in later tool calls will average them together.
+
+---
+
+## 3. Efficiency
+
+**Range:** 0.0–1.0
+**What it measures:** Did the agent solve the task without excessive token usage or unnecessary steps?
+
+### Intent
+
+An agent that uses 10× the tokens of another to reach the same answer is less efficient — it is more expensive to run, slower, and suggests the agent is reasoning in circles or producing excessive filler. This dimension rewards agents that stay within a reasonable token budget for their task difficulty, and applies a softer penalty for using too many steps. Runs that terminate in an error are penalized by 50%.
+
+### Token budgets
+
+Budgets were calibrated from observed Claude Sonnet 4.6 runs:
 
 | Difficulty | Token budget |
 |---|:---:|
-| `easy` | 20,000 |
-| `medium` | 50,000 |
-| `hard` | 30,000 |
+| Easy | 20,000 |
+| Medium | 50,000 |
+| Hard | 30,000 |
 
-Note: `hard` has a lower budget than `medium` by design — hard tasks have more structured, focused subtasks that should require fewer exploratory token exchanges.
+Hard tasks have a lower budget than medium by design: hard tasks have focused, well-scoped subtasks that should not require extensive exploration. A hard task that consumes medium-task token levels is being inefficient.
 
-### 4.2 Formula
+### Formula
 
-```python
-token_ratio = total_tokens / budget          # e.g. 1.5 means 50% over budget
-step_ratio  = steps_used  / max_steps        # e.g. 0.8 means used 80% of allowed steps
+```
+token_ratio = total_tokens / budget
+step_ratio  = steps_used  / max_steps
 
 token_score = max(0.0, 1.0 - max(0.0, token_ratio - 1.0))
-# Linearly penalizes over-budget: ratio=1.0 → 1.0, ratio=2.0 → 0.0, ratio=3.0+ → 0.0
-# Under budget is rewarded at 1.0 (no "bonus" for extreme frugality)
+# At budget → 1.0. Double the budget → 0.0. Triple → 0.0.
 
-step_score = max(0.0, 1.0 - max(0.0, step_ratio - 1.0) * 0.5)
-# Softer penalty for step overrun: ratio=1.5 → 0.75, ratio=3.0 → 0.0
+step_score  = max(0.0, 1.0 - max(0.0, step_ratio - 1.0) × 0.5)
+# Step overrun is penalized more gently than token overrun.
 
-raw = token_score * 0.6 + step_score * 0.4
+raw_efficiency = token_score × 0.6 + step_score × 0.4
 
-if has_error:
-    raw *= 0.5   # 50% penalty for runs that terminated in error
+if run terminated in error:
+    final_efficiency = raw_efficiency × 0.5
+else:
+    final_efficiency = raw_efficiency
 ```
 
-### 4.3 Worked examples
+### Worked examples
 
-| Scenario | tokens | steps | max_steps | diff | has_error | Score |
+| Scenario | Tokens | Steps | Max steps | Difficulty | Error | Score |
 |---|---:|---:|---:|---|---|:---:|
-| Efficient, under budget | 15,000 | 5 | 20 | easy | No | **1.000** |
-| At budget, at step limit | 20,000 | 20 | 20 | easy | No | **1.000** |
-| 2× over token budget | 40,000 | 20 | 20 | easy | No | **0.400** |
-| Claude Haiku feat_005 | 608,861 | 28 | 20 | hard | No | **0.130** |
-| Error, under budget | 10,000 | 3 | 20 | easy | Yes | **0.500** |
+| Clean run, under budget | 15,000 | 5 | 20 | Easy | No | **1.000** |
+| Exactly at budget and step limit | 20,000 | 20 | 20 | Easy | No | **1.000** |
+| 2× over token budget | 40,000 | 20 | 20 | Easy | No | **0.400** |
+| Claude Haiku on feat_005 (extreme overrun) | 608,861 | 28 | 20 | Hard | No | **0.130** |
+| Errored, under budget | 10,000 | 3 | 20 | Easy | Yes | **0.500** |
 
-### 4.4 Known limitations
+### Honest limitations
 
-- **Budgets are model-agnostic.** The calibration was done on Claude Sonnet runs. GPT-4.1-mini and Llama 3.3-70b use fewer tokens by behavior, giving them a structural advantage on efficiency scores independent of correctness.
-- **Hard tasks have a smaller budget than medium.** This is intentional but means models that are thorough on hard tasks are penalized more than on medium tasks.
+- **Budgets are not model-agnostic.** Calibration used Claude Sonnet 4.6. Models like GPT-4.1-mini or Llama 3.3-70b naturally use fewer tokens per response, giving them a structural efficiency advantage unrelated to task quality. This is a known bias we plan to address with per-model budget calibration.
+- **Hard tasks penalize thoroughness more than medium tasks.** This is intentional but means a model that is appropriately methodical on a hard task may be penalized more than one that cuts corners.
 
 ---
 
-## 5. Statistical Validity Scorer
+## 4. Statistical Validity
 
-**Source:** `scoring/stat_validity.py`  
-**Range:** {0.25, 0.50, 0.75, 1.00} — four binary checks, each worth 0.25  
-**Input:** `trace.final_answer` (string), `task.category` (string — currently unused in logic)
+**Range:** 0.25, 0.50, 0.75, or 1.00 (four binary checks, each worth 0.25)
+**What it measures:** Does the agent's final answer reflect rigorous statistical reasoning?
 
-### 5.1 Check 1 — Uncertainty reporting
+### Intent
 
-**Passes if** any regex matches (case-insensitive) in `final_answer`:
+A data scientist should not just compute a number — they should report uncertainty, name the method they used, interpret results carefully, and avoid fishing for significance. This dimension checks for four qualities in the final answer text: does the agent acknowledge uncertainty? Does it name an appropriate statistical method? Does it reason about what the result means? Does it show no signs of p-hacking?
 
-```python
-r"\bp[\s-]*value\b"         # "p-value", "p value"
-r"\bconfidence interval\b"
-r"\bci\b"                   # standalone "CI"
-r"\bstd\b"                  # standalone "std"
-r"\bstandard deviation\b"
-r"\bstandard error\b"
-r"\bp\s*=\s*0\."            # "p = 0.03", "p=0.001"
-r"\br\s*=\s*[-+]?\d"        # "r = 0.82"
-r"\bapproximately\b"
-r"\baround\b"
-r"\brange\b"                # "the values range from..."
-```
+These checks are deliberately broad to be model-agnostic: they look for vocabulary signals in plain text, not for any specific format.
 
-**Note:** `approximately`, `around`, and `range` are weak hedging words — they will satisfy this check even without formal uncertainty quantification.
+### Check 1: Reports uncertainty
 
-### 5.2 Check 2 — Appropriate statistical test
+Passes if the answer contains any of these phrases (case-insensitive):
 
-**Passes if** any regex matches (case-insensitive):
+`p-value`, `confidence interval`, `CI`, `std`, `standard deviation`, `standard error`, `p = 0.0...`, `r = [number]`, `approximately`, `around`, `range`
 
-```python
-r"\bpearson\b"
-r"\bspearman\b"
-r"\bcorrelation\b"
-r"\biqr\b"
-r"\bz[\s-]*score\b"
-r"\bskewness\b"
-r"\bkurtosis\b"
-r"\bhistogram\b"
-r"\bbox[\s-]*plot\b"
-r"\blog[\s-]transform"
-r"\bnormalization\b"
-r"\bnormalise\b"
-```
+**Passes:** "The mean income is approximately $52,000 with a standard deviation of $18,400."
+**Fails:** "The mean income is $52,341."
 
-**Known bug:** This list contains only EDA-specific vocabulary. On the 20 non-EDA tasks (modeling, feature engineering, ML engineering, statistical inference), this check almost never passes regardless of how appropriate the model's method is. A model that correctly runs a logistic regression, t-test, or chi-squared test will fail this check because those terms are not in the list.
+> Note: Weak hedges like "approximately" and "around" satisfy this check without formal uncertainty quantification. This is a known tradeoff between recall and precision.
 
-**Impact:** For non-EDA tasks, the maximum achievable stat_validity score under the current scorer is 0.75. In practice, Check 3 also often fails on non-EDA tasks, so the effective floor for non-EDA tasks is 0.25. **This is the primary driver of the 0.25 finding.** See Section 5.5 for the full impact breakdown.
+### Check 2: Names an appropriate statistical method
 
-### 5.3 Check 3 — Correct interpretation
+Passes if the answer contains any of: `pearson`, `spearman`, `correlation`, `IQR`, `z-score`, `skewness`, `kurtosis`, `histogram`, `box plot`, `log transform`, `normalization`, `normalise`
 
-**Passes if** any regex matches (case-insensitive):
+**Passes (EDA):** "The Pearson correlation between income and age is 0.43."
+**Fails (non-EDA, known bug):** "The logistic regression achieved 87% accuracy on the held-out set." *(logistic regression not in list)*
 
-```python
-r"\bcorrelation does not imply causation\b"
-r"\bcontrolling for\b"
-r"\badjusting for\b"
-r"\bpartial correlation\b"
-r"\bconfound"               # "confounder", "confounding"
-r"\bsimpson"                # Simpson's Paradox
-r"\bspurious"
-r"\bstatistically significant\b"
-r"\bnot significant\b"
-r"\bskew"                   # "skewed", "skewness"
-r"\bdistribution\b"
-```
+> **Known limitation:** This vocabulary list covers EDA methods only. On non-EDA tasks (modeling, feature engineering, ML engineering, statistical inference), this check will almost always fail regardless of how appropriate the agent's method is. A model that correctly runs a t-test, chi-squared test, or cross-validation cannot pass this check because those terms are not in the list. This is the primary reason non-EDA tasks have a structural score ceiling of 0.75 on this dimension. See the limitations section for full impact.
 
-**Note:** `distribution` and `skew` are common vocabulary that appears in many responses. On EDA tasks, this check passes frequently. On modeling and ML engineering tasks, it rarely passes unless the model explicitly discusses statistical assumptions.
+### Check 3: Interprets results correctly
 
-### 5.4 Check 4 — No p-hacking signals
+Passes if the answer contains any of: `correlation does not imply causation`, `controlling for`, `adjusting for`, `partial correlation`, `confounder`/`confounding`, `Simpson`, `spurious`, `statistically significant`, `not significant`, `skew`/`skewed`, `distribution`
 
-**Passes if none** of the following match:
+**Passes:** "While income and health outcomes are correlated, this does not imply causation — confounding variables like access to healthcare are likely present."
+**Fails:** "Income and health are related (r = 0.52)." *(result stated without interpretation)*
 
-```python
-r"tried.*different.*method"
-r"until.*significant"
-r"p.*just.*below.*0\.05"
-```
+> Note: Common words like "distribution" and "skew" appear in many EDA responses, so this check passes frequently on EDA tasks. It passes less often on modeling and ML tasks unless the agent explicitly discusses statistical assumptions.
 
-**Note:** These patterns have never fired in 227 runs. This check passes unconditionally in all observed outputs, contributing +0.25 to every score. It is currently **uninformative as a discriminating signal**.
+### Check 4: No p-hacking signals
 
-### 5.5 Score computation and effective floor
+Passes if the answer does **not** contain: `tried...different...method`, `until...significant`, `p...just...below...0.05`
 
-```python
-checks = [uncertainty, appropriate_test, correct_interp, no_p_hacking]
-score = round(sum(checks) / 4, 4)
-```
+**These patterns have never fired in 227 runs.** This check currently passes unconditionally and contributes +0.25 to every score. It is an aspirational check — designed for a class of outputs that does not yet appear in the benchmark — but it is currently uninformative as a discriminating signal.
 
-Effective score distribution by category:
+### Effective score ranges by task category
 
-| Category | Check 2 structural result | Typical observed score |
+Due to the EDA-only vocabulary limitation in Check 2:
+
+| Category | Check 2 can pass? | Typical score range |
 |---|---|:---:|
-| EDA (3 tasks) | Can pass | 0.50–0.75 |
-| Feature Engineering (5 tasks) | **Structurally fails** | **0.25** |
-| Modeling (5 tasks) | **Structurally fails** | **0.25** |
-| Statistical Inference (5 tasks) | **Structurally fails** | **0.25** |
-| ML Engineering (5 tasks) | **Structurally fails** | **0.25** |
+| EDA (3 tasks) | Yes | 0.50–0.75 |
+| Feature Engineering (5 tasks) | **No** | **0.25** |
+| Modeling (5 tasks) | **No** | **0.25** |
+| Statistical Inference (5 tasks) | **No** | **0.25** |
+| ML Engineering (5 tasks) | **No** | **0.25** |
 
-The 0.25 floor on non-EDA tasks reflects: Check 4 always passes (+0.25), Check 2 always fails (−), Check 1 and Check 3 rarely pass on non-EDA outputs (−). Most non-EDA outputs score exactly 0.25.
+The 0.25 floor on non-EDA tasks reflects: Check 4 always passes (+0.25), Check 2 structurally fails (0), and Checks 1 and 3 rarely pass on non-EDA outputs. Most non-EDA outputs score exactly 0.25.
 
-### 5.6 What a 1.0 output requires
+### Honest limitations
 
-For an EDA task, the output must contain all of:
-- Any uncertainty signal from Check 1 list (easiest: "approximately", "range")
-- Any method signal from Check 2 list ("correlation", "skewness", "histogram")
-- Any interpretation signal from Check 3 list ("distribution", "statistically significant")
-- No p-hacking phrases from Check 4 list (satisfied by default)
+These are limitations we have documented and plan to improve:
 
-For a non-EDA task, achieving 1.0 is currently impossible (Check 2 cannot pass). Maximum achievable score = 0.75.
+- **L1 (Critical): Check 2 only covers EDA vocabulary.** Non-EDA tasks cannot achieve more than 0.75 on this dimension. A future version will extend the vocabulary list to cover modeling, inference, and ML engineering methods.
+- **L2: Check 1 accepts weak hedges.** Words like "approximately" satisfy the uncertainty check without requiring formal statistical reporting. A future version will require stronger signals for full credit.
+- **L3: All checks are vocabulary-driven.** No check understands what the agent is saying — only whether specific words appear. A semantically correct answer phrased unusually may fail; a superficially correct answer may pass.
+- **L4: Check 4 is currently uninformative.** It has never fired. Its purpose is correct but its current patterns are too narrow to discriminate.
 
 ---
 
-## 6. Composite RDAB Score
+## 5. Composite RDAB Score
 
-**Source:** `scoring/composite.py`  
-**Range:** 0.0–1.0 (float, rounded to 4 decimal places)
+**Range:** 0.0–1.0
 
-```python
-RDAB_Score = (
-    correctness   × w_correctness
-  + code_quality  × w_code_quality
-  + efficiency    × w_efficiency
-  + stat_validity × w_stat_validity
-)
+```
+RDAB Score = (correctness × w_c) + (code_quality × w_q) + (efficiency × w_e) + (stat_validity × w_s)
 ```
 
-Weights are defined per-task in the YAML under the `scoring:` block. Weights always sum to 1.00.
+Weights are defined per-task in the YAML `scoring:` block and always sum to 1.00.
 
----
+### Weight profiles by task category
 
-## 7. Per-Task Weight Profiles
-
-Weights reflect how much each dimension matters for the task type:
-
-| Category | w_correctness | w_code_quality | w_efficiency | w_stat_validity |
+| Category | Correctness | Code Quality | Efficiency | Stat. Validity |
 |---|:---:|:---:|:---:|:---:|
 | EDA | 0.50 | 0.20 | 0.15 | 0.15 |
 | Feature Engineering | 0.45 | 0.20 | 0.15 | 0.20 |
@@ -369,107 +303,103 @@ Weights reflect how much each dimension matters for the task type:
 | Statistical Inference | 0.40 | 0.15 | 0.15 | 0.30 |
 | ML Engineering | 0.45 | 0.20 | 0.15 | 0.20 |
 
-These are representative values. Individual tasks may deviate slightly (e.g., `eda_003` with Simpson's Paradox has `stat_validity_weight: 0.25`). The exact weights for each task are in the YAML.
+These are representative values. Individual tasks may deviate slightly (e.g., `eda_003` with Simpson's Paradox has `stat_validity_weight: 0.25`). The exact weights for each task are in its YAML file.
 
 ---
 
-## 8. Summary of Scoring Limitations
-
-| ID | Dimension | Description | Status |
-|---|---|---|---|
-| L1 | Stat Validity | Check 2 is EDA-only; non-EDA tasks cannot pass it | Known, documented, deferred |
-| L2 | Stat Validity | Check 1 accepts weak hedging words, not formal uncertainty | Known, acceptable |
-| L3 | Stat Validity | Check 3 is vocabulary-driven, not semantically sensitive | Known, acceptable |
-| L4 | Stat Validity | Check 4 never fires (uninformative) | Known, documented |
-| L5 | Correctness | Substring matching — verbose outputs can pass by inclusion | Known, partially mitigated by task design |
-| L6 | Correctness | No contradiction detection | Known, fundamental limitation of string scoring |
-| L7 | Code Quality | Evaluates code form, not code correctness | Known, by design |
-| L8 | Code Quality | Multi-snippet averaging may mask late-run quality issues | Known |
-| L9 | Efficiency | Token budgets calibrated on Claude Sonnet, not model-agnostic | Known, favors token-efficient models |
-
----
-
-## 9. Independent Reproducibility Checklist
-
-To independently score any model output:
-
-1. Extract `final_answer` from the JSON trace file.
-2. Apply the 10 regex patterns in Section 5.1 (case-insensitive). Check 1 passes if any match.
-3. Apply the 12 regex patterns in Section 5.2. Check 2 passes if any match.
-4. Apply the 11 regex patterns in Section 5.3. Check 3 passes if any match.
-5. Apply the 3 regex patterns in Section 5.4. Check 4 passes if none match.
-6. `stat_validity = (check1 + check2 + check3 + check4) / 4`
-7. Extract all `run_code` tool inputs from the trace. Apply the 5 checks in Section 3.1–3.5.
-8. `code_quality = mean(scores_per_snippet)` where each snippet scores `(checks_passed / 5)`
-9. Compute `token_ratio = total_tokens / budget[difficulty]` using Section 4.1 budgets.
-10. Compute `efficiency` using the formula in Section 4.2.
-11. Compare `final_answer` against task YAML `ground_truth` using the rules in Section 2.
-12. Compute `RDAB_Score = correctness × w_c + code_quality × w_q + efficiency × w_e + stat_validity × w_s` using the task's YAML weights.
-
-Any reviewer who follows these steps and gets a different score than the leaderboard should open an issue with the task ID, model, and discrepancy.
-
----
-
-## 10. Ranking Eligibility — Coverage Threshold
+## 6. Ranking Eligibility
 
 To appear in the **ranked leaderboard**, a model must have completed at least **80% of the current task set** (currently ≥19 of 23 tasks).
 
-```
-coverage_pct = tasks_run / total_tasks
+**Why this threshold exists:** A model that ran only easy tasks would have a structurally inflated score compared to a model that ran all difficulties. The 80% threshold ensures that ranked comparisons are meaningful.
 
-eligible_for_ranking = coverage_pct >= 0.80
-```
-
-**Rationale:** A model that ran only easy or medium tasks would have a structurally inflated score relative to a model that ran all difficulties. Comparisons across models are only meaningful when they ran the same task set (or a large enough random sample of it).
-
-**How partial models are displayed:**
-- Models below the 80% threshold appear in a separate "partial coverage" section
-- They are shown with visual indicators (dashed border, reduced opacity, "partial" tag)
-- Their scores are presented with a `†` footnote noting incomparability
-- They are not assigned a rank number and do not appear in the model cards ranking
-
-**Example:** A model that ran 10 of 23 tasks (43% coverage) cannot be fairly compared to a model at 23/23 — even if the per-task scores are identical — because the task distributions differ. Coverage is reported as `X / 23` on every row.
+**Partial coverage models** (below 80%) appear in a separate section with a dashed border, reduced opacity, a "partial" tag, and a `†` footnote. They are not assigned a rank number and do not appear in the main model cards ranking.
 
 ---
 
-## 11. Real-Data vs. Synthetic Task Classification
+## 7. Real Data vs. Synthetic Task Classification
 
-Every task in RDAB is classified as either `synthetic` or `real_data`. This classification is recorded in the task YAML under the `dataset.data_source` field.
+Every task in RDAB is classified as either `synthetic` or `real_data` in the task YAML under `dataset.data_source`.
 
-### Synthetic tasks (23 tasks)
+### Synthetic tasks (17 tasks)
 
-Data is generated by seeded Python generators (`realdataagentbench/datasets/generators/`). The generator parameters (seed, n_rows, schema) are fixed in the task YAML, so the dataset is exactly reproducible: running the same generator twice with the same seed produces byte-identical output.
+Data is generated by seeded Python scripts with fixed parameters. Running the same generator twice produces byte-identical output. Ground truth is computed analytically from the generator's output and recorded in the YAML at task-creation time.
 
-**Ground truth for synthetic tasks:** Computed analytically or by running the generator at scoring time (e.g., `skewness = scipy.stats.skew(income_data)`). The ground truth is recorded in the YAML `ground_truth:` block at task-creation time and is not recomputed at scoring time.
-
-**Known limitation:** Synthetic generators may inadvertently create datasets that are easier or harder than equivalent real-world datasets. A model that memorized synthetic data patterns would receive an inflated score. See also the real-data tasks below.
+> **Limitation:** Synthetic data may be easier or harder than equivalent real-world data. Models that have encountered similar synthetic distributions in training may receive inflated scores.
 
 ### Real-data tasks (6 tasks)
 
-Data is loaded from publicly licensed, independent external sources — UCI Machine Learning Repository or scikit-learn's built-in datasets. These datasets predate RDAB and were not designed for this benchmark.
+Data is loaded from publicly licensed external sources — the UCI Machine Learning Repository or scikit-learn's built-in datasets.
 
 | Task | Dataset | Source | License |
 |---|---|---|---|
-| `eda_004` | Breast Cancer Wisconsin (Diagnostic) | UCI / sklearn | CC BY 4.0 |
-| `eda_005` | Iris | UCI / sklearn | Public domain (Fisher, 1936) |
-| `feat_006` | Diabetes | sklearn | BSD-3 (Efron et al., 2004) |
+| `eda_004` | Breast Cancer Wisconsin | UCI / sklearn | CC BY 4.0 |
+| `eda_005` | Iris | UCI / sklearn | Public domain |
+| `feat_006` | Diabetes | sklearn | BSD-3 |
 | `model_006` | Wine Recognition | UCI / sklearn | CC BY 4.0 |
-| `stat_006` | Iris (ANOVA task) | UCI / sklearn | Public domain (Fisher, 1936) |
+| `stat_006` | Iris (ANOVA task) | UCI / sklearn | Public domain |
 | `mod_006` | Breast Cancer Wisconsin (CV task) | UCI / sklearn | CC BY 4.0 |
 
-**Ground truth for real-data tasks:** Computed by running `sklearn.datasets.load_*()` directly and applying the same operations the agent is asked to perform. Because the source dataset is external and versioned, the ground truth is independently verifiable without reading RDAB source code: any reviewer can load the same sklearn dataset and verify the expected output.
-
-**Why real-data tasks matter for credibility:**
-- They cannot be "overfitted" to a synthetic distribution the benchmark author controls.
-- The ground truth is independently checkable against a third-party source (sklearn/UCI).
-- They test whether agents handle real-world messiness (non-uniform distributions, naturally correlated features, class imbalance) rather than idealized synthetic patterns.
+Ground truth for real-data tasks is independently verifiable: any reviewer can load the same dataset from sklearn and apply the same operations to confirm the expected output. These tasks cannot be overfitted to a synthetic distribution the benchmark author controls.
 
 ---
 
-## 12. Changelog
+## 8. How to Independently Verify a Score
+
+Any reviewer can verify a leaderboard score by following these steps. No benchmark source code is required.
+
+**Step 1 — Locate the run trace.**
+Find the JSON trace file for the model and task you want to verify. The trace contains `final_answer`, all tool calls, `total_input_tokens`, `total_output_tokens`, `num_steps`, and `error`.
+
+**Step 2 — Verify statistical validity (Section 4).**
+Apply the regex patterns from Checks 1–4 against `final_answer` (case-insensitive). Each check is binary. `stat_validity = (check1 + check2 + check3 + check4) / 4`.
+
+**Step 3 — Verify code quality (Section 2).**
+Extract all `tool_input` values from steps where `tool_name == "run_code"`. Apply the five binary checks from Section 2 to each snippet. Average the per-snippet scores. If no code snippets exist, code_quality = 0.5.
+
+**Step 4 — Verify efficiency (Section 3).**
+Sum `total_input_tokens + total_output_tokens`. Look up the budget for the task's difficulty from Section 3. Apply the token_score and step_score formulas. Apply the 50% error multiplier if `trace.error` is non-null.
+
+**Step 5 — Verify correctness (Section 1).**
+Open the task's YAML file and read the `ground_truth` block. For each key, apply the matching rule from the table in Section 1. `correctness = checks_passed / total_checks`.
+
+**Step 6 — Compute the RDAB Score.**
+Look up the task's weight profile from Section 5 (or the exact weights in its YAML). Compute:
+```
+RDAB Score = (correctness × w_c) + (code_quality × w_q) + (efficiency × w_e) + (stat_validity × w_s)
+```
+
+**Step 7 — Compare to the leaderboard.**
+Round to 4 decimal places. If your result differs from the displayed score by more than 0.001 (to account for floating-point differences), open a GitHub issue with the task ID, model name, and the discrepancy you found.
+
+---
+
+## 9. Summary of Known Limitations
+
+We document these limitations openly because we believe transparency about a benchmark's weaknesses is more useful than silence about them. All of these are candidates for improvement in future versions.
+
+| ID | Dimension | Description | Priority |
+|---|---|---|---|
+| L1 | Stat Validity | Check 2 is EDA-only; non-EDA tasks cannot pass it — this is the primary driver of the 0.25 floor | High — planned fix |
+| L2 | Stat Validity | Check 1 accepts weak hedges ("approximately", "around") without formal uncertainty | Medium |
+| L3 | Stat Validity | All checks are vocabulary-based, not semantically aware | Medium |
+| L4 | Stat Validity | Check 4 (p-hacking) has never fired in 227 runs — uninformative | Low |
+| L5 | Correctness | Verbose outputs can pass numeric checks by inclusion | Medium |
+| L6 | Correctness | No contradiction detection — conflicting sentences are not caught | Medium |
+| L7 | Code Quality | Evaluates code form, not whether the code is correct | By design |
+| L8 | Code Quality | Multi-snippet averaging may mask quality degradation in later tool calls | Low |
+| L9 | Efficiency | Token budgets calibrated on Claude Sonnet 4.6, not model-agnostic | High — planned fix |
+
+---
+
+## 10. Changelog
 
 | Version | Date | Change |
 |---|---|---|
 | 1.0 | 2026-04-01 | Initial spec covering all 4 dimensions; reflects all 227 v0.1.0 runs |
-| 1.1 | 2026-04-17 | Added L9 (efficiency calibration bias), Section 5.5 table, Section 9 checklist |
-| 1.2 | 2026-04-18 | Added Section 10 (coverage threshold for ranking eligibility), Section 11 (real vs. synthetic data classification with dataset table and reproducibility guarantee) |
+| 1.1 | 2026-04-17 | Added L9 (efficiency calibration bias), Section 5.5 score floor table, Section 9 checklist |
+| 1.2 | 2026-04-18 | Added coverage threshold (Section 6), real vs. synthetic data classification (Section 7), plain-English intent blocks, pass/fail examples, and verification checklist |
+
+---
+
+> **All scores in the leaderboard were computed using this specification.** The scoring logic in `realdataagentbench/scoring/` implements exactly the formulas, regex patterns, and thresholds described here. Any discrepancy between a score you compute by following this document and the score shown in the leaderboard should be reported as a [GitHub issue](https://github.com/Venkatamanideep09/RealDataAgentBench/issues) with the task ID, model name, and observed discrepancy.
