@@ -650,7 +650,7 @@ To cite:
 
 Where RDAB is a fixed benchmark (seeded datasets, published scores, reproducible runs), CostGuard is interactive: you bring your data, it runs the analysis and returns results. The privacy guarantee ("your data is processed in memory and never stored") applies to CostGuard, not to RDAB — RDAB uses only its own seeded and public datasets and never touches user-uploaded files.
 
-> **[github.com/patibandlavenkatamanideep/CostGuard](https://github.com/patibandlavenkatamanideep/CostGuard)**
+> **[Live app →](https://costguard-production-3afa.up.railway.app/)** &nbsp;·&nbsp; **[GitHub →](https://github.com/patibandlavenkatamanideep/CostGuard)**
 
 ---
 
