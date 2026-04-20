@@ -2,12 +2,14 @@
 
 import pytest
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 from realdataagentbench.core.registry import TaskRegistry
 from realdataagentbench.scoring.correctness import CorrectnessScorer
 from realdataagentbench.scoring.code_quality import CodeQualityScorer
 from realdataagentbench.scoring.efficiency import EfficiencyScorer
 from realdataagentbench.scoring.stat_validity import StatValidityScorer
+from realdataagentbench.scoring.llm_judge import LLMJudgeScorer
 from realdataagentbench.scoring.composite import CompositeScorer, ScoreCard
 
 TASKS_DIR = Path(__file__).parent.parent / "tasks"
@@ -307,3 +309,59 @@ class TestCompositeScorer:
         s = str(card)
         assert "DAB Score" in s
         assert "eda_001" in s
+
+
+# ---------------------------------------------------------------------------
+# LLM Judge (offline — Anthropic API is mocked)
+# ---------------------------------------------------------------------------
+
+class TestLLMJudgeScorer:
+    def _mock_client(self, json_response: str):
+        content = MagicMock()
+        content.text = json_response
+        message = MagicMock()
+        message.content = [content]
+        message.usage.input_tokens = 100
+        message.usage.output_tokens = 20
+        client = MagicMock()
+        client.messages.create.return_value = message
+        return client
+
+    def _make_scorer(self, client):
+        scorer = LLMJudgeScorer(model="claude-haiku-4-5-20251001", api_key="test")
+        return scorer, client
+
+    @patch("realdataagentbench.scoring.llm_judge._anthropic")
+    def test_perfect_json_response(self, mock_anthropic):
+        client = self._mock_client('{"reports_uncertainty": 1, "uses_appropriate_method": 1, "interprets_correctly": 1, "avoids_p_hacking": 1}')
+        mock_anthropic.Anthropic.return_value = client
+        scorer = LLMJudgeScorer(api_key="test")
+        result = scorer.score("some answer", category="eda")
+        assert result.stat_validity.score == 1.0
+        assert result.stat_validity.reports_uncertainty is True
+
+    @patch("realdataagentbench.scoring.llm_judge._anthropic")
+    def test_partial_score(self, mock_anthropic):
+        client = self._mock_client('{"reports_uncertainty": 1, "uses_appropriate_method": 0, "interprets_correctly": 1, "avoids_p_hacking": 0}')
+        mock_anthropic.Anthropic.return_value = client
+        scorer = LLMJudgeScorer(api_key="test")
+        result = scorer.score("some answer", category="statistical_inference")
+        assert result.stat_validity.score == 0.5
+
+    @patch("realdataagentbench.scoring.llm_judge._anthropic")
+    def test_markdown_fenced_json(self, mock_anthropic):
+        raw = '```json\n{"reports_uncertainty": 0, "uses_appropriate_method": 1, "interprets_correctly": 0, "avoids_p_hacking": 1}\n```'
+        client = self._mock_client(raw)
+        mock_anthropic.Anthropic.return_value = client
+        scorer = LLMJudgeScorer(api_key="test")
+        result = scorer.score("some answer", category="modeling")
+        assert result.stat_validity.score == 0.5
+
+    @patch("realdataagentbench.scoring.llm_judge._anthropic")
+    def test_tokens_recorded(self, mock_anthropic):
+        client = self._mock_client('{"reports_uncertainty": 1, "uses_appropriate_method": 1, "interprets_correctly": 1, "avoids_p_hacking": 1}')
+        mock_anthropic.Anthropic.return_value = client
+        scorer = LLMJudgeScorer(api_key="test")
+        result = scorer.score("some answer", category="eda")
+        assert result.input_tokens == 100
+        assert result.output_tokens == 20

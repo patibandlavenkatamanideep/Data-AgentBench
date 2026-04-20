@@ -3,3 +3,4 @@ from .code_quality import CodeQualityScorer
 from .efficiency import EfficiencyScorer
 from .stat_validity import StatValidityScorer
 from .composite import CompositeScorer, ScoreCard
+from .llm_judge import LLMJudgeScorer, LLMJudgeResult
