@@ -190,23 +190,6 @@ From 326 runs across 12 models and 29 tasks — patterns observed in actual benc
 
 ---
 
-## Human Expert Baseline
-
-To answer "is 0.832 good?", RDAB includes a human expert baseline on 5 representative tasks. A domain expert (5+ years applied data science) solved the same tasks under the same conditions — same task description, same DataFrame, same sandboxed tool environment — without seeing the scoring rubric or ground truth. Solutions were scored post-hoc with the identical SCORING_SPEC.md rubric.
-
-| Task | Category | Human RDAB | Human Stat Valid | Model Avg Stat Valid | Gap |
-|------|----------|:----------:|:----------------:|:--------------------:|:---:|
-| eda_001 | EDA | 0.888 | **0.75** | 1.00 | −0.25 |
-| model_001 | Modeling | 0.820 | **0.75** | 0.27 | **+0.48** |
-| stat_002 | Stat. Inference | 0.879 | **0.875** | 0.67 | +0.21 |
-| feat_002 | Feature Eng. | 0.830 | **0.75** | 0.25 | **+0.50** |
-| mod_001 | ML Eng. | 0.879 | **0.875** | 0.60 | +0.27 |
-| **Average** | | **0.857** | **0.800** | 0.454 | **+0.346** |
-
-**Key takeaway:** The human expert scored 0.800 average on statistical validity vs. model average 0.454 on the same tasks. The gap is largest on `model_001` (+0.48) and `feat_002` (+0.50) — exactly the tasks where Check 2 structurally fails for models. This confirms the 0.25 finding is a **real model capability gap**, not a scorer artefact: when a human solves the same task, they naturally report confidence intervals, note rank instability, and distinguish statistical from practical significance.
-
-The full baseline methodology and per-task notes are in [`docs/human_baseline.json`](docs/human_baseline.json).
-
 ---
 
 ## Statistical Validity Experiment (pre-registered)
@@ -560,7 +543,7 @@ pytest tests/ --cov=realdataagentbench --cov-report=term-missing
 - [x] Phase 5 — 23 tasks across 5 categories including ML Engineering (leakage, calibration, nested CV)
 - [x] Phase 6 — Cost per run ($) in leaderboard; category filters; 150 tests
 - [x] Phase 7 — 12 models: GPT-5, GPT-4.1, GPT-4.1-mini, GPT-4.1-nano, Grok-3-mini, Gemini 2.5 Flash, Llama 3.3 via Groq; 326 total runs
-- [x] Phase 8 — 6 real-data tasks (UCI/sklearn): Breast Cancer, Iris, Diabetes, Wine, ANOVA; SCORING_SPEC.md v1.2; coverage threshold policy; benchmark methodology docs; human expert baseline
+- [x] Phase 8 — 6 real-data tasks (UCI/sklearn): Breast Cancer, Iris, Diabetes, Wine, ANOVA; SCORING_SPEC.md v1.2; coverage threshold policy; benchmark methodology docs
 - [x] Phase 9 — Scorer fixes: category-aware stat-validity (was EDA-only); multi-run CI via `--runs N`; LLM-as-judge scorer for calibration; scorer correlation matrix
 - [ ] Run calibration script (`calibrate_stat_validity.py`) and publish Cohen's κ agreement between lexical scorer and LLM judge
 - [ ] Run ≥3× per task for defensible CI estimates; report variance across runs
@@ -596,7 +579,7 @@ The table below compares design features — **no head-to-head empirical runs ha
 | Seeded reproducible datasets | ✓ | ✓ | ✗ | ✗ |
 | Per-run cost tracking | ✓ | ✗ | ✗ | ✗ |
 | Fully local (no external download) | ✓ | ✗ | ✗ | ✗ |
-| Human expert baseline | ✓ | ✗ | ✗ | ✗ |
+| Human expert baseline | Planned | ✗ | ✗ | ✗ |
 | LLM-as-judge calibration | ✓ | ✗ | ✗ | ✗ |
 | Open source harness | ✓ | ✓ | ✓ | ✗ |
 | 95% CI on leaderboard | ✓ | ✗ | ✗ | ✗ |
@@ -655,7 +638,7 @@ To cite:
                in LLM Data Science Agents},
   year      = {2026},
   url       = {https://github.com/patibandlavenkatamanideep/RealDataAgentBench},
-  note      = {39 tasks, 4-dimensional scoring, 12 models at full coverage, human expert baseline.}
+  note      = {39 tasks, 4-dimensional scoring, 12 models at full coverage.}
 }
 ```
 

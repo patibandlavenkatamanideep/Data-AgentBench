@@ -686,8 +686,6 @@
     return `${prefix}-${t}`;
   }
 
-  let humanBaseline = null;
-
   async function load() {
     // Only responsible for fetching run-level data and populating the runs table.
     // Top sections (model cards, snapshot, insights) render immediately from INLINE_SUMMARY.
@@ -696,15 +694,9 @@
     let data;
     try {
       const bust = '?v=' + Date.now();
-      const [dataResp, humanResp] = await Promise.all([
-        fetch(base + 'results.json' + bust),
-        fetch(base + 'human_baseline.json' + bust).catch(() => null),
-      ]);
+      const dataResp = await fetch(base + 'results.json' + bust);
       if (!dataResp.ok) throw new Error(`HTTP ${dataResp.status} — ${base}results.json`);
       data = await dataResp.json();
-      if (humanResp && humanResp.ok) {
-        try { humanBaseline = await humanResp.json(); } catch (_) {}
-      }
     } catch (e) {
       console.error('[RDAB] results.json fetch failed:', e);
       if (tableLoading) tableLoading.innerHTML =
@@ -728,7 +720,6 @@
     document.getElementById('footer-stats').textContent =
       `${taskCount} tasks · ${modelCount} models · 4-dimension scoring`;
 
-    // Re-render snapshot with live data (may include humanBaseline now loaded)
     try { renderSnapshot(data.model_summary); } catch (_) {}
 
     allRuns = data.runs;
@@ -849,48 +840,7 @@
       </tr>` : '';
     const partialRows = partial.map(s => rowHtml(s, null, true)).join('');
 
-    // Human baseline row
-    let humanRow = '';
-    if (humanBaseline) {
-      const hb = humanBaseline.summary;
-      const tier = scoreTier(hb.avg_dab_score);
-      const pct  = Math.round(hb.avg_dab_score * 100);
-      humanRow = `
-        <tr>
-          <td colspan="6" style="padding:0.4rem 0.75rem;background:#F0FDF4;
-              color:#15803D;font-size:0.7rem;font-weight:700;
-              text-transform:uppercase;letter-spacing:0.08em;border-top:2px solid #BBF7D0">
-            Human Expert Baseline — 5 representative tasks — anchors what a statistically rigorous solution looks like
-          </td>
-        </tr>
-        <tr style="background:#F0FDF4;">
-          <td class="snap-rank" style="color:#15803D">👤</td>
-          <td class="snap-model">Human Expert
-            <span class="tag" style="background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0">baseline</span>
-          </td>
-          <td>
-            <div class="snap-bar-wrap">
-              <div class="snap-bar">
-                <div class="snap-bar-fill high" style="width:${pct}%"></div>
-              </div>
-              <span class="snap-score-val dab-high">${hb.avg_dab_score.toFixed(3)}</span>
-            </div>
-          </td>
-          <td class="snap-tasks">${humanBaseline.runs.length} / 23 tasks†</td>
-          <td class="snap-cost" style="color:var(--muted)">N/A</td>
-          <td style="color:#15803D;font-size:0.75rem">Human</td>
-        </tr>
-        <tr>
-          <td colspan="6" style="padding:0.3rem 0.75rem;background:#F0FDF4;font-size:0.7rem;color:#15803D;border-bottom:2px solid #BBF7D0;">
-            † 5-task sample. Stat validity: <strong>${hb.avg_stat_validity.toFixed(3)}</strong> vs model avg
-            <strong>${(humanBaseline.runs.reduce((s,r)=>s+r.model_avg_stat_validity,0)/humanBaseline.runs.length).toFixed(3)}</strong>
-            on the same tasks — the gap is a real model capability difference, not a scorer artefact.
-            <a href="human_baseline.json" style="color:#15803D;margin-left:0.5rem;">See methodology ↗</a>
-          </td>
-        </tr>`;
-    }
-
-    document.getElementById('snapshot-body').innerHTML = fullRows + dividerRow + partialRows + humanRow;
+    document.getElementById('snapshot-body').innerHTML = fullRows + dividerRow + partialRows;
   }
 
   function renderModelCards(summaries) {

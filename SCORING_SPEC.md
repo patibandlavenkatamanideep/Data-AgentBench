@@ -146,11 +146,7 @@ Individual tasks may deviate (e.g., `eda_003` uses `stat_validity: 0.25`). Exact
 
 ## 6. Human Baseline
 
-To establish a reference point, a human expert (the benchmark author, with an MS-level data science background) solved a representative subset of tasks using standard tools — pandas, scipy, sklearn, and a Jupyter notebook — without access to the ground truth answers. Responses were written as if answering a client brief: clear, concise, with reported uncertainty.
-
-The human baseline was scored using the identical automated scorer described in this document — no special handling, no manual overrides.
-
-**What the gap means:** The human did not score 1.0 on all tasks. On efficiency, the human's token usage was not measured (no LLM was used), so that dimension is not directly comparable. On correctness and code quality, the human scored at or above the best LLM on most tasks. The largest gap was on statistical validity, where the human sometimes used correct methods that the Check 2 vocabulary list does not cover — confirming that L1 (§9) is a real measurement gap, not just a theoretical one. The human baseline is included in the leaderboard for reference and is labeled as `human_baseline`.
+No human expert baseline currently exists in this benchmark. Recruiting domain experts to solve a representative subset of tasks under the same conditions is planned for a future iteration. Until then, model scores should be interpreted relative to each other, not against a human reference point.
 
 ---
 
@@ -197,7 +193,7 @@ No source code required. Any reviewer can follow these steps:
 | 1.0 | 2026-04-01 | Initial spec — all 4 dimensions, 227 v0.1.0 runs |
 | 1.1 | 2026-04-17 | Added L9 (efficiency calibration bias), score floor table, reproducibility checklist |
 | 1.2 | 2026-04-18 | Added coverage threshold, real vs. synthetic classification, pass/fail examples, verification checklist |
-| 1.3 | 2026-04-18 | Condensed for print readability; added human baseline section; promoted L1 and L2 to high priority |
+| 1.3 | 2026-04-18 | Condensed for print readability; promoted L1 and L2 to high priority |
 
 ---
 
