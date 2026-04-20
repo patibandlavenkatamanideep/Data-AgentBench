@@ -238,6 +238,13 @@
       margin-top: 0.1rem;
     }
 
+    .model-card .ci-range {
+      font-size: 0.68rem;
+      color: var(--muted-light);
+      font-variant-numeric: tabular-nums;
+      margin-top: 0.15rem;
+    }
+
     /* ── Quick Snapshot table ───────────────────────── */
     .snapshot-wrap {
       background: var(--surface);
@@ -591,14 +598,15 @@
             <th data-col="difficulty">Diff. <span class="sort-arrow">↕</span></th>
             <th data-col="category">Category <span class="sort-arrow">↕</span></th>
             <th data-col="model">Model <span class="sort-arrow">↕</span></th>
+            <th data-col="n_runs" title="Number of independent runs averaged">Runs <span class="sort-arrow">↕</span></th>
             <th data-col="correctness">Correctness <span class="sort-arrow">↕</span></th>
             <th data-col="code_quality">Code Quality <span class="sort-arrow">↕</span></th>
             <th data-col="efficiency">Efficiency <span class="sort-arrow">↕</span></th>
             <th data-col="stat_validity">Stat Validity <span class="sort-arrow">↕</span></th>
             <th data-col="dab_score">RDAB Score <span class="sort-arrow active">↓</span></th>
             <th data-col="total_tokens">Tokens <span class="sort-arrow">↕</span></th>
-            <th data-col="cost_usd">Cost ($) <span class="sort-arrow">↕</span></th>
-            <th title="RDAB Score ÷ Cost per task. Higher = more value per dollar.">Score / $</th>
+            <th data-col="avg_cost_usd">Avg Cost ($) <span class="sort-arrow">↕</span></th>
+            <th title="RDAB Score ÷ Avg Cost per task. Higher = more value per dollar.">Score / $</th>
           </tr>
         </thead>
         <tbody id="table-body"></tbody>
@@ -632,19 +640,24 @@
 
   // Embedded snapshot — allows top sections to render instantly without a network request.
   // Keep in sync with results.json when new model runs are added.
+  // ci_lower/ci_upper: 95% confidence interval (requires ≥2 runs; equals avg_dab_score when n=1)
+  // Embedded snapshot — allows top sections to render instantly without a network request.
+  // Keep in sync with results.json when new model runs are added.
+  // ci_lower/ci_upper: 95% CI across tasks (requires ≥2 runs/task for within-task CI)
+  // NOTE: Wide CIs reflect n=1 per task; run --runs 3 per task for tighter estimates.
   const INLINE_SUMMARY = [
-    {"model":"gpt-4.1-mini",             "avg_dab_score":0.8323,"avg_cost_usd":0.012658,"total_cost_usd":0.2911, "tasks_run":23},
-    {"model":"gpt-5",                    "avg_dab_score":0.8118,"avg_cost_usd":0.595694,"total_cost_usd":13.701, "tasks_run":23},
-    {"model":"gpt-4o",                   "avg_dab_score":0.7943,"avg_cost_usd":0.043891,"total_cost_usd":1.0095, "tasks_run":23},
-    {"model":"gpt-4.1",                  "avg_dab_score":0.7908,"avg_cost_usd":0.038404,"total_cost_usd":0.8833, "tasks_run":23},
-    {"model":"claude-opus-4-6",          "avg_dab_score":0.7794,"avg_cost_usd":1.627575,"total_cost_usd":37.4342,"tasks_run":23},
-    {"model":"claude-sonnet-4-6",        "avg_dab_score":0.7787,"avg_cost_usd":0.338201,"total_cost_usd":7.7786, "tasks_run":23},
-    {"model":"llama-3.3-70b-versatile",  "avg_dab_score":0.7718,"avg_cost_usd":0.001963,"total_cost_usd":0.0452, "tasks_run":23},
-    {"model":"gpt-4o-mini",              "avg_dab_score":0.7559,"avg_cost_usd":0.016900,"total_cost_usd":0.3887, "tasks_run":23},
-    {"model":"claude-haiku-4-5-20251001","avg_dab_score":0.7384,"avg_cost_usd":0.050266,"total_cost_usd":1.1561, "tasks_run":23},
-    {"model":"gpt-4.1-nano",             "avg_dab_score":0.6418,"avg_cost_usd":0.012636,"total_cost_usd":0.2906, "tasks_run":23},
-    {"model":"gemini-2.5-flash",         "avg_dab_score":0.6264,"avg_cost_usd":0.001502,"total_cost_usd":0.0345, "tasks_run":23},
-    {"model":"grok-3-mini",              "avg_dab_score":0.6256,"avg_cost_usd":0.002431,"total_cost_usd":0.0559, "tasks_run":23},
+    {"model":"gpt-4.1-mini",            "avg_dab_score":0.8535,"ci_lower":0.8213,"ci_upper":0.8856,"dab_score_std":0.0749,"total_runs":23, "avg_cost_usd":0.012658,"total_cost_usd":0.2911, "tasks_run":23},
+    {"model":"gpt-4o",                  "avg_dab_score":0.8231,"ci_lower":0.7619,"ci_upper":0.8843,"dab_score_std":0.1425,"total_runs":24, "avg_cost_usd":0.042829,"total_cost_usd":1.0279, "tasks_run":23},
+    {"model":"gpt-4.1",                 "avg_dab_score":0.8228,"ci_lower":0.7622,"ci_upper":0.8833,"dab_score_std":0.1410,"total_runs":39, "avg_cost_usd":0.038760,"total_cost_usd":1.5116, "tasks_run":23},
+    {"model":"claude-sonnet-4-6",       "avg_dab_score":0.8218,"ci_lower":0.7859,"ci_upper":0.8576,"dab_score_std":0.0835,"total_runs":29, "avg_cost_usd":0.316965,"total_cost_usd":9.1920, "tasks_run":23},
+    {"model":"claude-opus-4-6",         "avg_dab_score":0.8164,"ci_lower":0.7701,"ci_upper":0.8626,"dab_score_std":0.1077,"total_runs":23, "avg_cost_usd":1.627575,"total_cost_usd":37.4342,"tasks_run":23},
+    {"model":"llama-3.3-70b-versatile", "avg_dab_score":0.8142,"ci_lower":0.7696,"ci_upper":0.8588,"dab_score_std":0.1039,"total_runs":23, "avg_cost_usd":0.001963,"total_cost_usd":0.0452, "tasks_run":23},
+    {"model":"gpt-4o-mini",             "avg_dab_score":0.7896,"ci_lower":0.7537,"ci_upper":0.8255,"dab_score_std":0.0836,"total_runs":23, "avg_cost_usd":0.016900,"total_cost_usd":0.3887, "tasks_run":23},
+    {"model":"gpt-5",                   "avg_dab_score":0.7630,"ci_lower":0.6942,"ci_upper":0.8317,"dab_score_std":0.1600,"total_runs":32, "avg_cost_usd":0.671289,"total_cost_usd":21.4813,"tasks_run":23},
+    {"model":"claude-haiku-4-5-20251001","avg_dab_score":0.7570,"ci_lower":0.6915,"ci_upper":0.8224,"dab_score_std":0.1523,"total_runs":27,"avg_cost_usd":0.048271,"total_cost_usd":1.3033, "tasks_run":23},
+    {"model":"gpt-4.1-nano",            "avg_dab_score":0.6592,"ci_lower":0.5694,"ci_upper":0.7491,"dab_score_std":0.2092,"total_runs":23, "avg_cost_usd":0.012636,"total_cost_usd":0.2906, "tasks_run":23},
+    {"model":"grok-3-mini",             "avg_dab_score":0.6391,"ci_lower":0.5341,"ci_upper":0.7441,"dab_score_std":0.2445,"total_runs":34, "avg_cost_usd":0.004485,"total_cost_usd":0.1525, "tasks_run":23},
+    {"model":"gemini-2.5-flash",        "avg_dab_score":0.6228,"ci_lower":0.5048,"ci_upper":0.7408,"dab_score_std":0.2747,"total_runs":26, "avg_cost_usd":0.001356,"total_cost_usd":0.0353, "tasks_run":23},
   ];
 
   function modelProvider(model) {
@@ -799,6 +812,11 @@
       const rowStyle = isPartial ? ' style="opacity:0.65;font-style:italic"' : '';
       const rankCell = isPartial ? '<td class="snap-rank" style="color:var(--muted)">—</td>' : `<td class="snap-rank">${rank}</td>`;
 
+      const hasCI = s.ci_lower != null && s.ci_upper != null && s.ci_lower !== s.ci_upper;
+      const ciSuffix = hasCI
+        ? ` <span style="font-size:0.65rem;color:var(--muted-light);font-weight:400">[${s.ci_lower.toFixed(3)}–${s.ci_upper.toFixed(3)}]</span>`
+        : '';
+      const nRuns = s.total_runs || s.tasks_run;
       return `
         <tr${rowStyle}>
           ${rankCell}
@@ -812,8 +830,9 @@
                 ${s.avg_dab_score.toFixed(3)}
               </span>
             </div>
+            ${ciSuffix}
           </td>
-          <td class="snap-tasks">${s.tasks_run} / ${totalTasks}</td>
+          <td class="snap-tasks">${s.tasks_run} / ${totalTasks} <span style="color:var(--muted-light);font-size:0.7rem">(${nRuns} runs)</span></td>
           <td class="snap-cost">$${s.avg_cost_usd.toFixed(4)}</td>
           <td style="color:var(--muted-light);font-size:0.75rem">${provider}</td>
         </tr>`;
@@ -883,12 +902,19 @@
 
     const fullCards = full.map((s, i) => {
       const tier = scoreTier(s.avg_dab_score);
+      const hasCI = s.ci_lower != null && s.ci_upper != null && s.ci_lower !== s.ci_upper;
+      const ciHtml = hasCI
+        ? `<div class="ci-range">95% CI [${s.ci_lower.toFixed(3)}, ${s.ci_upper.toFixed(3)}]</div>`
+        : (s.total_runs && s.total_runs > s.tasks_run
+            ? `<div class="ci-range">${s.total_runs} total runs</div>`
+            : `<div class="ci-range" title="Run ≥3× per task for CI estimates">n=1 · no CI yet</div>`);
       return `
         <div class="model-card ${i === 0 ? 'top-card' : ''}">
           <div class="rank">#${i + 1}${i === 0 ? ' 🏆' : ''}</div>
           <div class="name" title="${s.model}">${s.model}</div>
           <div class="score score-${tier}">${s.avg_dab_score.toFixed(3)}</div>
-          <div class="tasks-run">${s.tasks_run} / 23 tasks</div>
+          ${ciHtml}
+          <div class="tasks-run">${s.tasks_run} / ${totalTasks} tasks</div>
           <div class="avg-cost">avg $${(s.avg_cost_usd || 0).toFixed(4)} / task</div>
         </div>`;
     }).join('');
@@ -953,12 +979,18 @@
     const tbody = document.getElementById('table-body');
     tbody.innerHTML = sorted.map(r => {
       const dabTier = scoreTier(r.dab_score);
-      const scorePer$ = r.cost_usd > 0
-        ? Math.min(r.dab_score / r.cost_usd, 999).toFixed(1)
+      const cost = r.avg_cost_usd || r.cost_usd || 0;
+      const scorePer$ = cost > 0
+        ? Math.min(r.dab_score / cost, 999).toFixed(1)
         : '—';
       const isReal = REAL_DATA_TASKS.has(r.task_id);
       const srcBadge = isReal
         ? '<span title="Real external dataset (UCI/sklearn)" style="display:inline-block;margin-left:4px;font-size:0.6rem;padding:0.1rem 0.4rem;border-radius:3px;background:#ECFEFF;color:#0E7490;border:1px solid #A5F3FC;font-weight:700;vertical-align:middle">REAL</span>'
+        : '';
+      const nRuns = r.n_runs || 1;
+      const hasCI = nRuns > 1 && r.dab_score_ci_lower != null && r.dab_score_ci_lower !== r.dab_score_ci_upper;
+      const ciHtml = hasCI
+        ? `<br><span style="font-size:0.65rem;color:var(--muted-light);font-weight:400">[${r.dab_score_ci_lower.toFixed(3)}–${r.dab_score_ci_upper.toFixed(3)}]</span>`
         : '';
       return `
         <tr>
@@ -967,13 +999,14 @@
           <td><span class="badge badge-${r.difficulty}">${r.difficulty}</span></td>
           <td style="color:var(--muted);font-size:0.75rem">${r.category}</td>
           <td><span class="model-chip">${r.model}</span></td>
+          <td style="color:var(--muted);font-size:0.78rem;text-align:center">${nRuns}</td>
           <td>${scoreBar(r.correctness)}</td>
           <td>${scoreBar(r.code_quality)}</td>
           <td>${scoreBar(r.efficiency)}</td>
           <td>${scoreBar(r.stat_validity)}</td>
-          <td><span class="dab-score dab-${dabTier}">${r.dab_score.toFixed(3)}</span></td>
+          <td><span class="dab-score dab-${dabTier}">${r.dab_score.toFixed(3)}</span>${ciHtml}</td>
           <td style="color:var(--muted);font-size:0.78rem">${(r.total_tokens || 0).toLocaleString()}</td>
-          <td><span class="cost-val">$${(r.cost_usd || 0).toFixed(4)}</span></td>
+          <td><span class="cost-val">$${cost.toFixed(4)}</span></td>
           <td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--muted)">${scorePer$}</td>
         </tr>`;
     }).join('');
@@ -1015,10 +1048,10 @@
   });
 
   // Render top sections immediately from embedded data — zero network latency
-  document.getElementById('meta-runs').textContent    = '276 runs';
-  document.getElementById('meta-tasks').textContent   = '23 tasks';
-  document.getElementById('meta-updated').textContent = 'Updated Apr 18, 2026';
-  document.getElementById('footer-stats').textContent = '23 tasks · 12 models · 4-dimension scoring';
+  document.getElementById('meta-runs').textContent    = '326 runs';
+  document.getElementById('meta-tasks').textContent   = '29 tasks';
+  document.getElementById('meta-updated').textContent = 'Updated Apr 20, 2026';
+  document.getElementById('footer-stats').textContent = '29 tasks · 12 models · 4-dimension scoring';
   try {
     renderInsights(INLINE_SUMMARY);
     renderModelCards(INLINE_SUMMARY);

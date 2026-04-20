@@ -110,7 +110,16 @@ def inspect_task(task_id):
     metavar="N",
     help="Override the task YAML's max_steps limit (useful for models that need more steps).",
 )
-def run(task_id, run_all, difficulty, model, output_dir, dry_run, budget, max_steps):
+@click.option(
+    "--runs",
+    "n_runs",
+    type=int,
+    default=1,
+    show_default=True,
+    metavar="N",
+    help="Number of independent runs per task (≥3 recommended for CI estimates).",
+)
+def run(task_id, run_all, difficulty, model, output_dir, dry_run, budget, max_steps, n_runs):
     """Run a task (or all tasks) through the agent."""
     from .core.registry import TaskRegistry
     from .harness.runner import Runner
@@ -122,6 +131,8 @@ def run(task_id, run_all, difficulty, model, output_dir, dry_run, budget, max_st
         console.print(f"[dim]Budget cap: ${budget:.2f} per task[/dim]")
     if max_steps is not None:
         console.print(f"[dim]Max steps override: {max_steps}[/dim]")
+    if n_runs > 1:
+        console.print(f"[dim]Runs per task: {n_runs}[/dim]")
 
     runner = Runner(
         registry=registry,
@@ -133,17 +144,23 @@ def run(task_id, run_all, difficulty, model, output_dir, dry_run, budget, max_st
     )
 
     if run_all:
-        console.print(f"[bold]Running all tasks[/bold] (model={model}, dry_run={dry_run})")
-        results = runner.run_all(difficulty=difficulty)
-        console.print(f"\n[green]Done.[/green] {len(results)} tasks completed.")
+        console.print(f"[bold]Running all tasks[/bold] (model={model}, dry_run={dry_run}, runs={n_runs})")
+        all_results = []
+        for _ in range(n_runs):
+            results = runner.run_all(difficulty=difficulty)
+            all_results.extend(results)
+        console.print(f"\n[green]Done.[/green] {len(all_results)} total runs completed.")
         return
 
     if not task_id:
         console.print("[red]Provide a TASK_ID or use --all[/red]")
         sys.exit(1)
 
-    console.print(f"[bold]Running[/bold] {task_id} (model={model}, dry_run={dry_run})")
-    result = runner.run_task(task_id)
+    console.print(f"[bold]Running[/bold] {task_id} (model={model}, dry_run={dry_run}, runs={n_runs})")
+    for run_idx in range(n_runs):
+        if n_runs > 1:
+            console.print(f"  [dim]Run {run_idx + 1}/{n_runs}[/dim]")
+        result = runner.run_task(task_id)
 
     if dry_run:
         console.print_json(json.dumps(result, indent=2))
