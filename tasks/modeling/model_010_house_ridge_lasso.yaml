@@ -1,0 +1,68 @@
+task_id: model_010
+title: "House Prices — Ridge vs Lasso Regularization Comparison"
+difficulty: medium
+category: modeling
+description: |
+  You are given a house prices dataset. Your task is to compare Ridge and Lasso regression:
+  1. Split into train (80%) and test (20%) sets with random_state=42.
+  2. Apply StandardScaler to all features.
+  3. Train Ridge(alpha=1.0) and report test RMSE.
+  4. Train Lasso(alpha=1.0) and report test RMSE.
+  5. Identify the most important feature by largest absolute Ridge coefficient.
+  6. Report whether Lasso sets any coefficients to exactly zero.
+  7. State which regularization method is better suited when feature selection is desired.
+
+dataset:
+  generator: house_prices
+  seed: 42
+  n_rows: 800
+  schema:
+    total_sqft: float
+    num_rooms: int
+    house_age: int
+    garage: int
+    price: float
+
+ground_truth:
+  top_feature: "total_sqft"
+  top_feature_aliases:
+    - "total_sqft"
+    - "sqft"
+    - "square"
+    - "area"
+  lasso_for_selection: true
+  lasso_for_selection_aliases:
+    - "lasso"
+    - "Lasso"
+    - "feature selection"
+    - "zero coefficient"
+    - "sparse"
+    - "variable selection"
+  rmse_reported: true
+  rmse_reported_aliases:
+    - "RMSE"
+    - "rmse"
+    - "16"
+    - "root mean squared"
+
+scoring:
+  correctness_weight: 0.40
+  code_quality_weight: 0.20
+  efficiency_weight: 0.15
+  stat_validity_weight: 0.25
+
+evaluation:
+  max_steps: 20
+  timeout_seconds: 180
+  allowed_tools:
+    - run_code
+    - get_dataframe_info
+    - get_column_stats
+
+tags:
+  - modeling
+  - ridge
+  - lasso
+  - regularization
+  - regression
+  - house_prices

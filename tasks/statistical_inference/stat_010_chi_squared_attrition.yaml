@@ -1,0 +1,76 @@
+task_id: stat_010
+title: "Employee Attrition — Chi-Squared Test for Overtime & Attrition Independence"
+difficulty: easy
+category: statistical_inference
+description: |
+  You are given an employee attrition dataset. You want to know if overtime work is
+  associated with higher attrition.
+  Your task is to:
+  1. Build a 2×2 contingency table of overtime (Yes/No) vs attrition (0/1).
+  2. Run a chi-squared test of independence.
+  3. Report the chi-squared statistic and p-value.
+  4. Report the attrition rate for overtime=Yes and overtime=No employees.
+  5. State whether overtime and attrition are significantly associated (α=0.05).
+
+dataset:
+  generator: employee_attrition
+  seed: 42
+  n_rows: 800
+  schema:
+    age: int
+    department: str
+    job_role: str
+    education: str
+    gender: str
+    years_at_company: int
+    monthly_income: float
+    overtime: str
+    satisfaction_score: float
+    attrition: int
+
+ground_truth:
+  significant_association: true
+  significant_association_aliases:
+    - "significant"
+    - "reject"
+    - "p < 0.05"
+    - "associated"
+    - "statistically"
+    - "p-value"
+  overtime_higher_attrition: true
+  overtime_higher_attrition_aliases:
+    - "overtime"
+    - "Yes"
+    - "higher attrition"
+    - "16%"
+    - "0.168"
+    - "0.17"
+    - "16.8"
+  chi_squared_used: true
+  chi_squared_used_aliases:
+    - "chi"
+    - "chi2"
+    - "chi-squared"
+    - "chi_contingency"
+    - "contingency"
+
+scoring:
+  correctness_weight: 0.45
+  code_quality_weight: 0.15
+  efficiency_weight: 0.10
+  stat_validity_weight: 0.30
+
+evaluation:
+  max_steps: 15
+  timeout_seconds: 180
+  allowed_tools:
+    - run_code
+    - get_dataframe_info
+    - get_column_stats
+
+tags:
+  - statistical_inference
+  - chi_squared
+  - contingency_table
+  - attrition
+  - independence_test

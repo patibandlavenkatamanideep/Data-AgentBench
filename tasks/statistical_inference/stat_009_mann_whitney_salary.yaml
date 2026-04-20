@@ -1,0 +1,76 @@
+task_id: stat_009
+title: "Salary Survey — Mann-Whitney Test for Non-Parametric Gender Comparison"
+difficulty: medium
+category: statistical_inference
+description: |
+  You are given a salary survey dataset. Salary distributions are often non-normal.
+  Your task is to:
+  1. Test for normality of salary using a Shapiro-Wilk test (on a sample of 200).
+  2. Because salary is non-normal, run a Mann-Whitney U test comparing male vs female salary.
+  3. Report the test statistic and p-value.
+  4. Compute the rank-biserial correlation r = 1 - 2U/(n1*n2) as an effect size measure.
+  5. State whether the difference is statistically significant at α=0.05.
+  6. Report the median salary for each gender.
+
+dataset:
+  generator: salary_survey
+  seed: 42
+  n_rows: 800
+  schema:
+    gender: str
+    department: str
+    years_experience: int
+    education: str
+    role_level: str
+    performance_score: float
+    salary: float
+
+ground_truth:
+  not_significant: true
+  not_significant_aliases:
+    - "not significant"
+    - "no significant"
+    - "fail to reject"
+    - "0.57"
+    - "0.5705"
+    - "p > 0.05"
+    - "p-value is 0.5"
+    - "p-value > 0.05"
+  mann_whitney_used: true
+  mann_whitney_used_aliases:
+    - "mann-whitney"
+    - "mann whitney"
+    - "mannwhitneyu"
+    - "Mann-Whitney"
+    - "non-parametric"
+    - "wilcoxon rank"
+  effect_size_reported: true
+  effect_size_reported_aliases:
+    - "rank-biserial"
+    - "effect size"
+    - "-0.02"
+    - "0.02"
+    - "small effect"
+    - "negligible"
+
+scoring:
+  correctness_weight: 0.45
+  code_quality_weight: 0.15
+  efficiency_weight: 0.10
+  stat_validity_weight: 0.30
+
+evaluation:
+  max_steps: 20
+  timeout_seconds: 180
+  allowed_tools:
+    - run_code
+    - get_dataframe_info
+    - get_column_stats
+
+tags:
+  - statistical_inference
+  - mann_whitney
+  - non_parametric
+  - effect_size
+  - salary
+  - gender

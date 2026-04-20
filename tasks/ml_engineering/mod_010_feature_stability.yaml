@@ -1,0 +1,88 @@
+task_id: mod_010
+title: "Credit Risk — Feature Importance Stability via Bootstrap Resampling"
+difficulty: hard
+category: ml_engineering
+description: |
+  You are given a credit risk dataset. Feature importance from a single model run can be
+  unstable — a feature that ranks #1 in one run might rank #4 in another. Bootstrapping
+  reveals which feature ranks are reliable.
+  Your task is to:
+  1. Use only these features (exclude engineered columns): age, income, debt_ratio,
+     credit_score, num_loans, loan_amount, employment_years, monthly_payment,
+     payment_history, utilization_rate, num_credit_lines.
+  2. Run 20 bootstrap samples (with replacement, random_state=i for sample i).
+     For each: fit RandomForestClassifier(n_estimators=50, random_state=i) and record
+     the rank of each feature by importance (rank 1 = most important).
+  3. Compute the mean rank and standard deviation of rank for each feature across 20 bootstraps.
+  4. Report the most stable top feature (lowest mean rank with lowest std).
+  5. Report which features have high rank instability (std > 1.5).
+  6. State whether feature importance rankings should be trusted from a single model run.
+
+dataset:
+  generator: credit_risk
+  seed: 42
+  n_rows: 800
+  schema:
+    age: int
+    income: float
+    debt_ratio: float
+    credit_score: int
+    num_loans: int
+    loan_amount: float
+    employment_years: int
+    monthly_payment: float
+    payment_history: float
+    utilization_rate: float
+    num_credit_lines: int
+    income_log: float
+    debt_income_ratio: float
+    dummy_noise_1: float
+    dummy_noise_2: float
+    default: int
+
+ground_truth:
+  stable_top_feature: "credit_score"
+  stable_top_feature_aliases:
+    - "credit_score"
+    - "credit score"
+    - "creditScore"
+  unstable_features_exist: true
+  unstable_features_exist_aliases:
+    - "unstable"
+    - "high variance"
+    - "high std"
+    - "rank instability"
+    - "varies"
+    - "not reliable"
+    - "single run"
+  single_run_not_reliable: true
+  single_run_not_reliable_aliases:
+    - "not reliable"
+    - "single model"
+    - "should not trust"
+    - "unreliable"
+    - "bootstrap"
+    - "instability"
+    - "multiple runs"
+
+scoring:
+  correctness_weight: 0.40
+  code_quality_weight: 0.15
+  efficiency_weight: 0.10
+  stat_validity_weight: 0.35
+
+evaluation:
+  max_steps: 25
+  timeout_seconds: 300
+  allowed_tools:
+    - run_code
+    - get_dataframe_info
+    - get_column_stats
+
+tags:
+  - ml_engineering
+  - feature_importance
+  - bootstrap
+  - stability
+  - random_forest
+  - credit_risk

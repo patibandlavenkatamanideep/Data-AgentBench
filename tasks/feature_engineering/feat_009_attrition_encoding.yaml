@@ -1,0 +1,74 @@
+task_id: feat_009
+title: "Employee Attrition — Categorical Encoding & Feature Importance"
+difficulty: medium
+category: feature_engineering
+description: |
+  You are given an employee attrition dataset with mixed feature types.
+  Your task is to:
+  1. Apply label encoding to binary/ordinal columns (overtime, education, role_level).
+  2. Apply one-hot encoding to nominal columns (department, job_role, gender).
+  3. Train a Random Forest classifier (n_estimators=100, random_state=42) to predict attrition.
+  4. Report the top 3 most important features by feature importance.
+  5. State whether satisfaction_score is among the top 3 features.
+
+dataset:
+  generator: employee_attrition
+  seed: 42
+  n_rows: 800
+  schema:
+    age: int
+    department: str
+    job_role: str
+    education: str
+    gender: str
+    years_at_company: int
+    monthly_income: float
+    overtime: str
+    satisfaction_score: float
+    attrition: int
+
+ground_truth:
+  satisfaction_top3: true
+  satisfaction_top3_aliases:
+    - "satisfaction"
+    - "satisfaction_score"
+    - "satisfaction score"
+    - "top 3"
+    - "top feature"
+  top_feature_is_satisfaction: true
+  top_feature_is_satisfaction_aliases:
+    - "satisfaction_score"
+    - "satisfaction score"
+    - "satisfaction is"
+    - "highest importance"
+    - "most important"
+  encoding_applied: true
+  encoding_applied_aliases:
+    - "label encod"
+    - "one-hot"
+    - "onehot"
+    - "one hot"
+    - "LabelEncoder"
+    - "get_dummies"
+
+scoring:
+  correctness_weight: 0.40
+  code_quality_weight: 0.20
+  efficiency_weight: 0.15
+  stat_validity_weight: 0.25
+
+evaluation:
+  max_steps: 20
+  timeout_seconds: 180
+  allowed_tools:
+    - run_code
+    - get_dataframe_info
+    - get_column_stats
+
+tags:
+  - feature_engineering
+  - encoding
+  - label_encoding
+  - one_hot_encoding
+  - random_forest
+  - attrition

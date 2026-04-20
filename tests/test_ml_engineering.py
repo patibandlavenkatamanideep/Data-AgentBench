@@ -166,7 +166,7 @@ class TestMLEngineeringTasks:
             assert task.task_id == tid
 
     def test_total_task_count(self, registry):
-        assert len(registry) == 29
+        assert len(registry) == 39
 
     def test_mod_001_category(self, registry):
         task = registry.get("mod_001")

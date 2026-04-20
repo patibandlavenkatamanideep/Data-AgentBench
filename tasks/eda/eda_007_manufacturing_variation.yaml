@@ -1,0 +1,75 @@
+task_id: eda_007
+title: "Manufacturing Quality — Process Variation & Defect Analysis"
+difficulty: medium
+category: eda
+description: |
+  You are given a manufacturing quality dataset with measurements from two machines (A and B)
+  across three shifts.
+  Your task is to:
+  1. Compute the standard deviation of measurements for each machine.
+  2. Identify which machine has higher process variation.
+  3. Report the overall defect rate as a percentage.
+  4. Compute the Pearson correlation between temperature and defect occurrence.
+  5. State whether temperature is a strong predictor of defects.
+
+dataset:
+  generator: manufacturing_quality
+  seed: 42
+  n_rows: 800
+  schema:
+    batch_id: int
+    machine: str
+    shift: int
+    measurement: float
+    temperature: float
+    humidity: float
+    defect: int
+
+ground_truth:
+  higher_variation_machine: "B"
+  higher_variation_machine_aliases:
+    - "machine B"
+    - "Machine B"
+    - " B "
+    - "B has"
+    - "B is"
+  defect_rate_reported: true
+  defect_rate_reported_aliases:
+    - "defect"
+    - "4.9"
+    - "5%"
+    - "4.8"
+    - "5.0"
+    - "0.049"
+    - "0.048"
+    - "0.05"
+  temp_weak_predictor: true
+  temp_weak_predictor_aliases:
+    - "weak"
+    - "low correlation"
+    - "not a strong"
+    - "no significant"
+    - "not significant"
+    - "0.03"
+    - "0.04"
+
+scoring:
+  correctness_weight: 0.40
+  code_quality_weight: 0.20
+  efficiency_weight: 0.15
+  stat_validity_weight: 0.25
+
+evaluation:
+  max_steps: 15
+  timeout_seconds: 180
+  allowed_tools:
+    - run_code
+    - get_dataframe_info
+    - get_column_stats
+
+tags:
+  - eda
+  - process_control
+  - standard_deviation
+  - correlation
+  - manufacturing

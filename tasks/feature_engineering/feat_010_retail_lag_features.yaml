@@ -1,0 +1,72 @@
+task_id: feat_010
+title: "Retail Sales — Lag & Rolling Window Features for Time Series"
+difficulty: hard
+category: feature_engineering
+description: |
+  You are given a retail sales dataset with daily sales across stores.
+  Your task is to:
+  1. Aggregate daily_sales to the daily mean across all stores.
+  2. Create a lag-7 feature (sales 7 days prior) and a 7-day rolling mean feature.
+  3. Drop rows with NaN values introduced by lag/rolling operations.
+  4. Split the data chronologically: first 80% for training, last 20% for testing.
+  5. Train a LinearRegression model using lag-7 and rolling mean as features.
+  6. Compute RMSE for both the lag model and a naive baseline (predicting the training mean).
+  7. Report whether the lag-7 features reduce RMSE compared to the baseline.
+
+dataset:
+  generator: retail_sales
+  seed: 42
+  n_rows: 800
+  schema:
+    transaction_date: str
+    store_id: int
+    daily_sales: float
+    promo_active: int
+
+ground_truth:
+  lag_improves_baseline: true
+  lag_improves_baseline_aliases:
+    - "improves"
+    - "reduces RMSE"
+    - "lower RMSE"
+    - "better than baseline"
+    - "lag features help"
+    - "475"
+    - "476"
+    - "474"
+  lag7_feature_created: true
+  lag7_feature_created_aliases:
+    - "lag"
+    - "lag_7"
+    - "lag7"
+    - "shift(7)"
+    - "7 days"
+  chronological_split: true
+  chronological_split_aliases:
+    - "chronolog"
+    - "time"
+    - "order"
+    - "sort"
+    - "first 80"
+    - "last 20"
+
+scoring:
+  correctness_weight: 0.40
+  code_quality_weight: 0.15
+  efficiency_weight: 0.10
+  stat_validity_weight: 0.35
+
+evaluation:
+  max_steps: 25
+  timeout_seconds: 180
+  allowed_tools:
+    - run_code
+    - get_dataframe_info
+    - get_column_stats
+
+tags:
+  - feature_engineering
+  - time_series
+  - lag_features
+  - rolling_window
+  - linear_regression

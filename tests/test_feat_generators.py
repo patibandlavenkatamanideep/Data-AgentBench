@@ -183,12 +183,12 @@ class TestFeatTaskLoading:
 
     def test_registry_total_count(self):
         registry = TaskRegistry(TASKS_DIR)
-        assert len(registry) == 29
+        assert len(registry) == 39
 
     def test_filter_by_category(self):
         registry = TaskRegistry(TASKS_DIR)
         feat_tasks = registry.filter(category="feature_engineering")
-        assert len(feat_tasks) == 6
+        assert len(feat_tasks) == 8
 
     def test_feat_generators_registered(self):
         for name in ["house_prices", "employee_attrition", "retail_sales",

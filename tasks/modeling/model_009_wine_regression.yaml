@@ -1,0 +1,77 @@
+task_id: model_009
+title: "Wine Quality — Linear Regression vs Random Forest Comparison"
+difficulty: medium
+category: modeling
+description: |
+  You are given a wine quality dataset. Your task is to predict the numeric quality score
+  (not the binary high_quality column) using two models:
+  1. Split into train (80%) and test (20%) sets with random_state=42.
+  2. StandardScale the features for both models.
+  3. Train a LinearRegression model and compute test RMSE.
+  4. Train a RandomForestRegressor (n_estimators=100, random_state=42) and compute test RMSE.
+  5. Report which model achieves lower RMSE.
+  6. Report the top feature by Random Forest feature importance.
+  7. State whether the more complex model (RF) always outperforms the simpler one.
+
+dataset:
+  generator: wine_quality
+  seed: 42
+  n_rows: 800
+  schema:
+    fixed_acidity: float
+    volatile_acidity: float
+    citric_acid: float
+    residual_sugar: float
+    chlorides: float
+    free_sulfur_dioxide: float
+    total_sulfur_dioxide: float
+    density: float
+    ph: float
+    sulphates: float
+    alcohol: float
+    quality: int
+    high_quality: int
+
+ground_truth:
+  linear_wins_or_ties: true
+  linear_wins_or_ties_aliases:
+    - "linear regression"
+    - "LinearRegression"
+    - "simpler model"
+    - "linear"
+    - "not always"
+    - "doesn't always"
+    - "complexity"
+  top_feature: "volatile_acidity"
+  top_feature_aliases:
+    - "volatile_acidity"
+    - "volatile acidity"
+  rmse_reported: true
+  rmse_reported_aliases:
+    - "RMSE"
+    - "rmse"
+    - "root mean squared"
+    - "0.6"
+    - "0.7"
+
+scoring:
+  correctness_weight: 0.40
+  code_quality_weight: 0.20
+  efficiency_weight: 0.15
+  stat_validity_weight: 0.25
+
+evaluation:
+  max_steps: 20
+  timeout_seconds: 180
+  allowed_tools:
+    - run_code
+    - get_dataframe_info
+    - get_column_stats
+
+tags:
+  - modeling
+  - regression
+  - linear_regression
+  - random_forest
+  - model_comparison
+  - wine

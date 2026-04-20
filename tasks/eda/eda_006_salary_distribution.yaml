@@ -1,0 +1,68 @@
+task_id: eda_006
+title: "Salary Survey — Compensation Distribution & Benchmark Analysis"
+difficulty: easy
+category: eda
+description: |
+  You are given a salary survey dataset with employee compensation data.
+  Your task is to:
+  1. Compute the skewness of the salary column.
+  2. Report whether the salary distribution is left-skewed, right-skewed, or symmetric.
+  3. Identify which department has the highest median salary.
+  4. Apply a log transformation to salary and report the new skewness.
+  5. State whether log transformation improves the distributional shape.
+
+dataset:
+  generator: salary_survey
+  seed: 42
+  n_rows: 800
+  schema:
+    gender: str
+    department: str
+    years_experience: int
+    education: str
+    role_level: str
+    performance_score: float
+    salary: float
+
+ground_truth:
+  right_skewed: true
+  right_skewed_aliases:
+    - "right-skew"
+    - "right skew"
+    - "positively skew"
+    - "positive skew"
+    - "right skewed"
+  top_department_by_salary: "engineering"
+  top_department_by_salary_aliases:
+    - "engineering"
+    - "Engineering"
+  log_improves_skew: true
+  log_improves_skew_aliases:
+    - "log"
+    - "log transform"
+    - "log-transform"
+    - "improves"
+    - "reduces skew"
+    - "more normal"
+    - "normalized"
+
+scoring:
+  correctness_weight: 0.45
+  code_quality_weight: 0.20
+  efficiency_weight: 0.10
+  stat_validity_weight: 0.25
+
+evaluation:
+  max_steps: 15
+  timeout_seconds: 180
+  allowed_tools:
+    - run_code
+    - get_dataframe_info
+    - get_column_stats
+
+tags:
+  - eda
+  - distribution
+  - skewness
+  - log_transform
+  - salary

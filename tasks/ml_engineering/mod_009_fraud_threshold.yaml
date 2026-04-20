@@ -1,0 +1,77 @@
+task_id: mod_009
+title: "Fraud Detection — Decision Threshold Optimization for Recall-Weighted F-Score"
+difficulty: medium
+category: ml_engineering
+description: |
+  You are given a fraud detection dataset. Fraud is rare (~5% of cases). In fraud detection,
+  missing a fraud (false negative) is far more costly than a false alarm.
+  Your task is to:
+  1. Split into train (80%) and test (20%) sets with random_state=42 and stratify=y.
+  2. Apply StandardScaler; encode merchant_category with LabelEncoder.
+  3. Train RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced').
+  4. Compute precision-recall curve on the test set.
+  5. Find the threshold that maximizes the F2 score (β=2, which weights recall twice as much).
+  6. Compare the F2 score at threshold=0.5 vs the optimal threshold.
+  7. Report whether the optimal threshold is lower than 0.5 and why this matters.
+
+dataset:
+  generator: fraud_detection
+  seed: 42
+  n_rows: 800
+  schema:
+    transaction_amount: float
+    merchant_category: str
+    transaction_hour: int
+    customer_age: int
+    num_transactions_today: int
+    account_balance: float
+    is_foreign: int
+    fraud: int
+
+ground_truth:
+  optimal_below_half: true
+  optimal_below_half_aliases:
+    - "lower than 0.5"
+    - "less than 0.5"
+    - "below 0.5"
+    - "0.06"
+    - "0.07"
+    - "0.05"
+    - "threshold"
+  f2_score_reported: true
+  f2_score_reported_aliases:
+    - "F2"
+    - "f2"
+    - "beta=2"
+    - "β=2"
+    - "F-beta"
+    - "recall-weighted"
+  class_imbalance_addressed: true
+  class_imbalance_addressed_aliases:
+    - "imbalance"
+    - "class_weight"
+    - "stratify"
+    - "rare"
+    - "minority"
+
+scoring:
+  correctness_weight: 0.40
+  code_quality_weight: 0.15
+  efficiency_weight: 0.10
+  stat_validity_weight: 0.35
+
+evaluation:
+  max_steps: 25
+  timeout_seconds: 180
+  allowed_tools:
+    - run_code
+    - get_dataframe_info
+    - get_column_stats
+
+tags:
+  - ml_engineering
+  - threshold_optimization
+  - precision_recall
+  - f_beta_score
+  - class_imbalance
+  - fraud_detection
