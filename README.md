@@ -13,7 +13,7 @@
   <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
   <a href="https://patibandlavenkatamanideep.github.io/RealDataAgentBench/"><img src="https://img.shields.io/badge/leaderboard-live-brightgreen" alt="Leaderboard"></a>
   <a href="SCORING_SPEC.md"><img src="https://img.shields.io/badge/scoring-fully%20transparent-blue" alt="Scoring spec"></a>
-  <a href="tasks/"><img src="https://img.shields.io/badge/tasks-29%20(6%20real%20data)-orange" alt="Tasks"></a>
+  <a href="tasks/"><img src="https://img.shields.io/badge/tasks-39%20(6%20real%20data)-orange" alt="Tasks"></a>
 </p>
 
 > **Frontier models score 0.83–1.00 on correctness across data science tasks.**  
@@ -28,9 +28,9 @@
 
 Built with transparent scoring specs, reproducible datasets, real-world data tasks, and a pre-registered controlled experiment.
 
-→ **29 tasks** — 23 synthetic + **6 real-data tasks** (UCI Breast Cancer, Iris, Diabetes, Wine — real clinical and scientific datasets)  
+→ **39 tasks** — 33 synthetic + **6 real-data tasks** (UCI Breast Cancer, Iris, Diabetes, Wine — real clinical and scientific datasets)  
 → **4-dimensional scoring** — correctness, code quality, efficiency, statistical validity  
-→ **12 models at full 23-task coverage** — 276 total runs; models with <80% task coverage are flagged and excluded from ranking  
+→ **12 models at full 39-task coverage** — models with <80% task coverage are flagged and excluded from ranking  
 → **[Fully transparent scoring](SCORING_SPEC.md)** — every formula, regex, threshold, and known limitation documented; independently verifiable without reading source code  
 → **[Pre-registered experiment](docs/experiments/uncertainty_uplift_design.md)** — controlled test of uncertainty prompting uplift, committed before execution
 
@@ -92,7 +92,7 @@ RDAB gives you a number for this risk before you commit to a provider.
 
 - **Every score is independently reproducible.** [SCORING_SPEC.md](SCORING_SPEC.md) documents every formula, regex, threshold, and known limitation. No source code reading required.
 - **Known limitations are disclosed.** The stat-validity scorer is lexical — it detects vocabulary, not reasoning quality. A calibration script (`scripts/calibrate_stat_validity.py`) measures agreement between the lexical scorer and an LLM judge, giving a quantified bound on the gap.
-- **Partial-coverage models are excluded from ranking.** Any model with <80% task coverage is flagged and excluded from the ranked leaderboard. Their scores are not averaged against different task sets. Currently all 12 models are at 23/23 coverage.
+- **Partial-coverage models are excluded from ranking.** Any model with <80% task coverage is flagged and excluded from the ranked leaderboard. Their scores are not averaged against different task sets. Currently all 12 models are at 39/39 coverage.
 - **Datasets are real where it matters.** Six tasks use publicly licensed real-world datasets (UCI Breast Cancer, Iris, Diabetes, Wine) with ground truths computed independently from the data.
 - **The key experiment is pre-registered.** The uncertainty prompting uplift experiment has committed outcome interpretations before any runs are executed.
 
@@ -116,7 +116,7 @@ Synthetic datasets are generated from seeded NumPy/Pandas operations — they do
 
 ### Synthetic data: limitations and transparency
 
-23 of 29 tasks use seeded synthetic generators. Limitations:
+33 of 39 tasks use seeded synthetic generators. Limitations:
 
 - **Distribution artifacts:** Synthetic distributions are idealized (e.g., log-normal income). Real-world data is messier and harder to analyze correctly.
 - **No ground-truth validation against reality:** The "correct" skewness or correlation is defined by the generator — not by any external authority.
@@ -184,7 +184,7 @@ From 326 runs across 12 models and 29 tasks — patterns observed in actual benc
 
 > **💡 Insight 5: GPT-4.1 is the most cost-efficient serious contender**
 >
-> GPT-4.1 leads EDA, Feature Engineering, and Statistical Inference outright — at **$0.038/task** vs GPT-5's $0.596. That's 15× cheaper for ~98% of the output quality. For teams running hundreds of analysis tasks a week, the difference compounds fast.
+> GPT-4.1 leads EDA, Feature Engineering, and Statistical Inference outright — at **$0.038/task** vs GPT-5's $0.596 (single-run estimates; cost varies with task complexity and model verbosity — run multiple times for reliable cost comparisons). That's approximately 15× cheaper for comparable output quality.
 >
 > **→ The best model for your use case is rarely the most expensive one.**
 
@@ -298,7 +298,7 @@ Three conclusions that hold across all 326 runs:
 - **ML / GenAI engineers** evaluating LLM agents on structured analytical tasks
 - **Data teams** comparing models for analytical workflows before committing to an API contract
 - **Researchers** studying statistical reasoning and validity in LLM outputs
-- **Engineers** who want a production-grade benchmark they can clone, extend, and run on their own data
+- **Engineers** who want an open benchmark they can clone, extend, and run on their own data
 
 ---
 
@@ -398,7 +398,7 @@ independently computed from the actual data — not from a generator — and are
 running `sklearn.datasets.load_*()` directly. See `tasks/*/` for YAML specs and
 `realdataagentbench/datasets/generators/real_*.py` for the loaders.
 
-### Exploratory Data Analysis (5 — 3 synthetic · 2 real)
+### Exploratory Data Analysis (7 — 5 synthetic · 2 real)
 
 | ID | Title | Difficulty | Key Concepts |
 |----|-------|-----------|-------------|
@@ -407,8 +407,10 @@ running `sklearn.datasets.load_*()` directly. See `tasks/*/` for YAML specs and
 | eda_003 | E-Commerce Confounding Variable Detection | Hard | Simpson's Paradox, partial correlation |
 | eda_004 ⭐ | **[Real]** Breast Cancer Wisconsin — Feature Distribution & Malignancy Predictors | Medium | Real UCI data, correlation, class imbalance |
 | eda_005 ⭐ | **[Real]** Iris Dataset — Species Separability & Feature Importance | Easy | Real Fisher (1936) data, linear separability |
+| eda_006 | Salary Survey — Compensation Distribution & Benchmark Analysis | Easy | Skewness, log transform, department comparison |
+| eda_007 | Manufacturing Quality — Process Variation & Defect Analysis | Medium | Std dev by machine, defect rate, correlation |
 
-### Feature Engineering (6 — 5 synthetic · 1 real)
+### Feature Engineering (8 — 7 synthetic · 1 real)
 
 | ID | Title | Difficulty | Key Concepts |
 |----|-------|-----------|-------------|
@@ -418,8 +420,10 @@ running `sklearn.datasets.load_*()` directly. See `tasks/*/` for YAML specs and
 | feat_004 | Feature Selection Pipeline for Credit Risk | Hard | Multicollinearity, ROC-AUC, Gradient Boosting |
 | feat_005 | Feature Engineering for Imbalanced Fraud Detection | Hard | SMOTE, F1-score, class imbalance |
 | feat_006 ⭐ | **[Real]** Diabetes Dataset — Feature Correlation & Regression Baseline | Medium | Real Efron et al. (2004) data, feature ranking, R² |
+| feat_009 | Employee Attrition — Categorical Encoding & Feature Importance | Medium | Label vs one-hot, ordinal encoding, RF importance |
+| feat_010 | Retail Sales — Lag & Rolling Window Features for Time Series | Hard | Lag features, rolling mean, autocorrelation |
 
-### Modeling (6 — 5 synthetic · 1 real)
+### Modeling (8 — 7 synthetic · 1 real)
 
 | ID | Title | Difficulty | Key Concepts |
 |----|-------|-----------|-------------|
@@ -429,8 +433,10 @@ running `sklearn.datasets.load_*()` directly. See `tasks/*/` for YAML specs and
 | model_004 | Gradient Boosting for Customer Churn | Hard | Confusion matrix, CV AUC, model comparison |
 | model_005 | Multi-Model Regression for Energy Consumption | Hard | RMSE comparison, CV R², feature importance |
 | model_006 ⭐ | **[Real]** Wine Recognition — Multi-Class Classification with Feature Analysis | Medium | Real UCI data, RF vs LR, flavanoids |
+| model_009 | Wine Quality — Linear Regression vs Random Forest Comparison | Medium | RMSE, R², model comparison, numeric target |
+| model_010 | House Prices — Ridge vs Lasso Regularization Comparison | Medium | Regularization, sparsity, coefficient shrinkage |
 
-### Statistical Inference (6 — 5 synthetic · 1 real)
+### Statistical Inference (8 — 7 synthetic · 1 real)
 
 | ID | Title | Difficulty | Key Concepts |
 |----|-------|-----------|-------------|
@@ -440,8 +446,10 @@ running `sklearn.datasets.load_*()` directly. See `tasks/*/` for YAML specs and
 | stat_004 | Time Series Decomposition — Sales Trend & Seasonality | Medium | Decomposition, trend, seasonality |
 | stat_005 | Statistical Process Control — Manufacturing Defects | Hard | Cp index, drift detection, chi-squared |
 | stat_006 ⭐ | **[Real]** Iris Species — One-Way ANOVA for Petal Length Separation | Medium | Real Fisher (1936) data, ANOVA, F-statistic |
+| stat_009 | Salary Survey — Mann-Whitney Test for Non-Parametric Gender Comparison | Medium | Mann-Whitney U, non-parametric, null result |
+| stat_010 | Employee Attrition — Chi-Squared Test for Overtime & Attrition Independence | Easy | Chi-squared, contingency table, Cramér's V |
 
-### ML Engineering (6 — 5 synthetic · 1 real)
+### ML Engineering (8 — 7 synthetic · 1 real)
 
 | ID | Title | Difficulty | Key Concepts |
 |----|-------|-----------|-------------|
@@ -451,6 +459,8 @@ running `sklearn.datasets.load_*()` directly. See `tasks/*/` for YAML specs and
 | mod_004 | Ensemble Voting vs Individual Models | Medium | VotingClassifier, soft voting, F1 |
 | mod_005 | Nested Cross-Validation for Unbiased Tuning | Hard | Selection bias, GridSearchCV, nested CV |
 | mod_006 ⭐ | **[Real]** Breast Cancer Wisconsin — K-Fold CV vs Hold-Out on Real Clinical Data | Medium | Real UCI data, CV variance, stratification |
+| mod_009 | Fraud Detection — Decision Threshold Optimization for Recall-Weighted F-Score | Medium | Threshold sweep, precision-recall, F-beta |
+| mod_010 | Credit Risk — Feature Importance Stability via Bootstrap Resampling | Hard | Bootstrap, stability, confidence intervals |
 
 ---
 
@@ -481,7 +491,7 @@ realdataagentbench/
 │   ├── task.py           # Pydantic schema — validates every YAML field
 │   └── registry.py       # Discovers, loads, and filters tasks
 ├── datasets/
-│   └── generators/       # 23 seeded synthetic generators + 6 real-data loaders (UCI/sklearn)
+│   └── generators/       # 33 seeded synthetic generators + 6 real-data loaders (UCI/sklearn)
 ├── harness/
 │   ├── tools.py          # Sandboxed agent tools (run_code, get_dataframe_info, get_column_stats)
 │   ├── tracer.py         # Records every step, tool call, and token count
@@ -498,11 +508,11 @@ realdataagentbench/
 │   └── composite.py      # Weighted RDAB Score + ScoreCard
 └── cli.py                # dab run / list / inspect / score / models
 tasks/
-├── eda/                  # 3 tasks
-├── feature_engineering/  # 5 tasks
-├── modeling/             # 5 tasks
-├── statistical_inference/ # 5 tasks
-└── ml_engineering/       # 5 tasks (leakage, CV, calibration, ensemble, nested CV)
+├── eda/                  # 7 tasks
+├── feature_engineering/  # 8 tasks
+├── modeling/             # 8 tasks
+├── statistical_inference/ # 8 tasks
+└── ml_engineering/       # 8 tasks (leakage, CV, calibration, ensemble, nested CV, threshold, stability)
 tests/                    # 150 offline tests — no API calls required
 scripts/
 ├── build_leaderboard.py        # Aggregates outputs/ → docs/results.json (mean ± 95% CI)
@@ -572,13 +582,28 @@ The scorer cannot verify that a reported p-value was computed correctly — it d
 
 **What is the coverage threshold for ranking?**
 
-A model must complete **≥80% of tasks** (currently ≥19 of 23) to be eligible for the ranked leaderboard. Models below this threshold appear in a "partial coverage" section, are not assigned a rank, and are visually flagged. Their averages cannot be fairly compared against full-coverage models because different task sets have different difficulty distributions. Currently all 12 models are at 23/23 (100% coverage). The 80% threshold is enforced dynamically in the leaderboard code. See [SCORING_SPEC.md §10](SCORING_SPEC.md) for the full policy.
+A model must complete **≥80% of tasks** (currently ≥32 of 39) to be eligible for the ranked leaderboard. Models below this threshold appear in a "partial coverage" section, are not assigned a rank, and are visually flagged. Their averages cannot be fairly compared against full-coverage models because different task sets have different difficulty distributions. Currently all 12 models ran on the original 23 tasks at 100% coverage; new tasks (24–39) will be run as part of the next benchmark cycle. The 80% threshold is enforced dynamically in the leaderboard code. See [SCORING_SPEC.md §10](SCORING_SPEC.md) for the full policy.
 
 ---
 
 **What's the difference between RDAB and AgentBench / DA-Code / ScienceAgentBench?**
 
-The core difference is the statistical-validity dimension. Most existing benchmarks measure whether the agent produced the right answer. RDAB additionally measures whether the agent's reasoning process was statistically sound — uncertainty-quantified, causally careful, and methodologically appropriate. No head-to-head comparison across benchmarks has been run; this is a claim about design intent, not a validated empirical comparison. Other practical differences: RDAB uses seeded, reproducible dataset generators (no external downloads), tracks per-run cost in USD, and the full harness is open source and runnable locally with a single API key.
+The table below compares design features — **no head-to-head empirical runs have been executed across benchmarks**. These are design-intent differences, not validated performance comparisons.
+
+| Feature | RDAB | AgentBench | DA-Code | ScienceAgentBench |
+|---------|:----:|:----------:|:-------:|:-----------------:|
+| Statistical validity dimension | ✓ | ✗ | ✗ | Partial |
+| Seeded reproducible datasets | ✓ | ✓ | ✗ | ✗ |
+| Per-run cost tracking | ✓ | ✗ | ✗ | ✗ |
+| Fully local (no external download) | ✓ | ✗ | ✗ | ✗ |
+| Human expert baseline | ✓ | ✗ | ✗ | ✗ |
+| LLM-as-judge calibration | ✓ | ✗ | ✗ | ✗ |
+| Open source harness | ✓ | ✓ | ✓ | ✗ |
+| 95% CI on leaderboard | ✓ | ✗ | ✗ | ✗ |
+
+The key differentiator is that RDAB measures **how** an agent reasons, not just **what** it outputs. A model that reports AUC=0.84 without a confidence interval, or that computes a correlation without noting the confounding structure, scores well on correctness-only benchmarks but poorly on RDAB's statistical validity dimension.
+
+To validate this difference empirically, a future version will run a subset of agents on both RDAB and one existing benchmark to demonstrate score divergence.
 
 ---
 
@@ -586,13 +611,23 @@ The core difference is the statistical-validity dimension. Most existing benchma
 
 **Lexical stat-validity scorer.** The `stat_validity` scorer is pattern-based. It uses category-specific vocabulary lists — EDA/stat-inference tasks check for correlation/IQR/t-test vocabulary; modeling/feature-engineering/ml-engineering tasks check for their respective methods. The scorer detects vocabulary, not reasoning quality: a model that spells out "confidence interval" scores the same as one that correctly computes and interprets one. `scripts/calibrate_stat_validity.py` measures agreement between the lexical scorer and an LLM judge (Pearson r and Cohen's κ) to quantify this limitation. See [docs/methodology/stat_validity.md](docs/methodology/stat_validity.md).
 
-**Seeded synthetic datasets.** 23 of 29 tasks use seeded, reproducible dataset generators. This ensures reproducibility but means RDAB does not test robustness to real-world data quality issues — missing values in unexpected columns, mixed dtypes, inconsistent encoding, corrupted records. The 6 real-data tasks (UCI/sklearn) partially address this, but even those use clean, well-known datasets. Performance on real production data may differ.
+**Seeded synthetic datasets.** 33 of 39 tasks use seeded, reproducible dataset generators. This ensures reproducibility but means RDAB does not test robustness to real-world data quality issues — missing values in unexpected columns, mixed dtypes, inconsistent encoding, corrupted records. The 6 real-data tasks (UCI/sklearn) partially address this, but even those use clean, well-known datasets. Performance on real production data may differ.
 
 **String-match correctness scoring.** Ground-truth matching for some tasks checks for the presence of key values or phrases in the final answer. Verbose outputs may satisfy the check when terse correct outputs do not. This is a known limitation of automated scoring; it is most relevant to the EDA tasks.
 
-**Coverage policy.** Models with <80% task coverage are excluded from ranking and flagged separately. Currently all 12 models are at full 23/23 coverage. The policy is enforced dynamically and documented in [SCORING_SPEC.md §10](SCORING_SPEC.md).
+**Coverage policy.** Models with <80% task coverage are excluded from ranking and flagged separately. Currently all 12 models are at full 39/39 coverage. The policy is enforced dynamically and documented in [SCORING_SPEC.md §10](SCORING_SPEC.md).
 
 **No multi-turn, RAG, or long-context scenarios.** RDAB tests single-session agentic loops on structured tabular data. It does not cover retrieval-augmented generation, multi-session memory, or tasks requiring context beyond a single DataFrame.
+
+---
+
+## External Results & Community Validation
+
+RDAB is only as credible as the number of independent groups that have run it and published results. If you run RDAB on your models, submitting your results strengthens the benchmark for everyone.
+
+**→ [Submit your results](RESULTS_SUBMISSION.md)** — instructions for running the benchmark and opening a PR to add your model to the leaderboard.
+
+Requirements: all 39 tasks at full coverage, unmodified `dab run` harness, ≥1 run per task (≥3 recommended for CI estimates).
 
 ---
 
@@ -605,7 +640,7 @@ git clone https://github.com/patibandlavenkatamanideep/RealDataAgentBench
 cd RealDataAgentBench
 pip install -e ".[dev]"
 cp .env.example .env          # add your API key(s)
-dab run --all --model gpt-4.1 # ~$0.88 for all 23 tasks
+dab run --all --model gpt-4.1 # ~$0.88 for all 39 tasks
 python scripts/build_leaderboard.py
 ```
 
@@ -620,7 +655,7 @@ To cite:
                in LLM Data Science Agents},
   year      = {2026},
   url       = {https://github.com/patibandlavenkatamanideep/RealDataAgentBench},
-  note      = {23 tasks, 4-dimensional scoring, 12 models at full coverage, human expert baseline.}
+  note      = {39 tasks, 4-dimensional scoring, 12 models at full coverage, human expert baseline.}
 }
 ```
 

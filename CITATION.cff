@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+message: "If you use RealDataAgentBench in your research, please cite it as below."
+type: software
+title: "RealDataAgentBench: An Open Benchmark for Statistical Validity in LLM Data Science Agents"
+authors:
+  - family-names: Patibandla
+    given-names: Venkata Manideep
+    email: venkatamanideep20@gmail.com
+    orcid: ""
+version: "1.0.0"
+date-released: "2026-04-20"
+url: "https://github.com/patibandlavenkatamanideep/RealDataAgentBench"
+repository-code: "https://github.com/patibandlavenkatamanideep/RealDataAgentBench"
+license: MIT
+abstract: >
+  RealDataAgentBench (RDAB) is an open-source benchmark that evaluates whether
+  LLM agents perform data science work that is not just numerically correct but
+  statistically sound — reporting uncertainty, using appropriate statistical
+  methods for the task context, and avoiding causal overreach. RDAB scores
+  agents across four independent dimensions: correctness, code quality,
+  efficiency, and statistical validity. The benchmark includes 39 tasks across
+  5 categories (EDA, feature engineering, modeling, statistical inference, ML
+  engineering), covering both synthetic seeded generators and real-world datasets
+  (UCI/sklearn). Results include human expert baselines and 95% confidence
+  intervals computed from multiple runs.
+keywords:
+  - LLM evaluation
+  - data science agents
+  - statistical validity
+  - agent benchmark
+  - machine learning evaluation
+  - reproducible AI research
+preferred-citation:
+  type: software
+  title: "RealDataAgentBench: An Open Benchmark for Statistical Validity in LLM Data Science Agents"
+  authors:
+    - family-names: Patibandla
+      given-names: Venkata Manideep
+  year: 2026
+  url: "https://github.com/patibandlavenkatamanideep/RealDataAgentBench"
