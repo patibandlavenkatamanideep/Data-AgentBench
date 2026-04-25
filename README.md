@@ -30,7 +30,7 @@ Built with transparent scoring specs, reproducible datasets, real-world data tas
 
 → **39 tasks** — 33 synthetic + **6 real-data tasks** (UCI Breast Cancer, Iris, Diabetes, Wine — real clinical and scientific datasets)  
 → **4-dimensional scoring** — correctness, code quality, efficiency, statistical validity  
-→ **12 models at full 39-task coverage** — models with <80% task coverage are flagged and excluded from ranking  
+→ **12 models at full coverage** — current leaderboard reflects 326 runs on the original 23-task set; tasks 24–39 are defined but not yet run across all models  
 → **[Fully transparent scoring](SCORING_SPEC.md)** — every formula, regex, threshold, and known limitation documented; independently verifiable without reading source code  
 → **[Pre-registered experiment](docs/experiments/uncertainty_uplift_design.md)** — controlled test of uncertainty prompting uplift, committed before execution
 
@@ -92,7 +92,7 @@ RDAB gives you a number for this risk before you commit to a provider.
 
 - **Every score is independently reproducible.** [SCORING_SPEC.md](SCORING_SPEC.md) documents every formula, regex, threshold, and known limitation. No source code reading required.
 - **Known limitations are disclosed.** The stat-validity scorer is lexical — it detects vocabulary, not reasoning quality. A calibration script (`scripts/calibrate_stat_validity.py`) measures agreement between the lexical scorer and an LLM judge, giving a quantified bound on the gap.
-- **Partial-coverage models are excluded from ranking.** Any model with <80% task coverage is flagged and excluded from the ranked leaderboard. Their scores are not averaged against different task sets. Currently all 12 models are at 39/39 coverage.
+- **Partial-coverage models are excluded from ranking.** Any model with <80% task coverage is flagged and excluded from the ranked leaderboard. Their scores are not averaged against different task sets. Currently all 12 models have completed the original 23-task set at 100% coverage.
 - **Datasets are real where it matters.** Six tasks use publicly licensed real-world datasets (UCI Breast Cancer, Iris, Diabetes, Wine) with ground truths computed independently from the data.
 - **The key experiment is pre-registered.** The uncertainty prompting uplift experiment has committed outcome interpretations before any runs are executed.
 
@@ -134,7 +134,7 @@ Ground truth for synthetic tasks is pre-computed at task-creation time and store
 
 ## 🔍 Key Findings
 
-From 326 runs across 12 models and 29 tasks — patterns observed in actual benchmark output, not hypothetical.
+From 326 runs across 12 models and 23 tasks — patterns observed in actual benchmark output, not hypothetical.
 
 ---
 
@@ -194,9 +194,9 @@ From 326 runs across 12 models and 29 tasks — patterns observed in actual benc
 
 ## Statistical Validity Experiment (pre-registered)
 
-The 0.25 stat-validity finding is RDAB's headline result — every model fails on the same dimension, on the same tasks, for the same structural reason. Before claiming it as a model capability gap, two alternative explanations need empirical testing:
+The category-level stat-validity gap is RDAB's headline result — feature engineering and modeling tasks score 0.45–0.51 even when correctness is 0.83+. Before claiming this as a model capability gap, two alternative explanations need empirical testing:
 
-1. **Scorer artifact hypothesis:** The 0.25 floor is entirely explained by the scorer's EDA-only pattern list (Check 2). Fix the scorer and the gap disappears.
+1. **Scorer artifact hypothesis:** The gap is entirely explained by the lexical scorer's pattern list. Better prompting to use the right vocabulary closes it.
 2. **Prompting gap hypothesis:** Models can produce statistically rigorous outputs when asked explicitly — the gap is real but addressable.
 
 We have **pre-registered** a controlled experiment (45 runs, ~$12.67 total) to test hypothesis 2:
@@ -213,14 +213,14 @@ We have **pre-registered** a controlled experiment (45 runs, ~$12.67 total) to t
 
 The experiment design is fully pre-registered in [docs/experiments/uncertainty_uplift_design.md](docs/experiments/uncertainty_uplift_design.md), including the exact prompt text, pre-committed outcome interpretations, and qualitative review criteria to distinguish genuine reasoning improvement from lexical mimicry.
 
-**Status:** Design locked. Awaiting budget approval to execute (~$12.67 for all 45 runs).
+**Status:** Design locked. Execution scheduled after the multi-run CI baseline is in place to ensure a clean comparison.
 
 ---
 
 ## Observed failure patterns
 
 **Pattern 1 — Correct number, wrong reasoning** (`feat_002`, `feat_003`, `model_001–003`):
-Every model computes the right feature importances, encodes correctly, or fits the right coefficients — then stops. No model spontaneously adds: which features are statistically indistinguishable, whether the importance ranking is stable across folds, or whether the model is overfit. Correctness = 1.0, Stat Validity = 0.25.
+Every model computes the right feature importances, encodes correctly, or fits the right coefficients — then stops. No model spontaneously adds: which features are statistically indistinguishable, whether the importance ranking is stable across folds, or whether the model is overfit. On these specific tasks: Correctness = 1.0, Stat Validity = 0.25.
 
 **→ Principle:** Correct answer ≠ statistically sound reasoning.
 
@@ -241,7 +241,7 @@ Gemini 2.5 Flash produces structurally correct code but truncates its final answ
 
 ---
 
-## Leaderboard — 326 runs · 12 models · 29 tasks
+## Leaderboard — 326 runs · 12 models · 23 tasks
 
 All 12 models completed all 23 original tasks (100% coverage). **Ranking eligibility requires ≥80% task coverage** — see [SCORING_SPEC.md §10](SCORING_SPEC.md#10-ranking-eligibility--coverage-threshold). Scores below reflect the fixed category-aware stat-validity scorer; rankings shifted from the prior scorer (notably gpt-5 dropped from #2 to #8).
 
@@ -270,7 +270,7 @@ All 12 models completed all 23 original tasks (100% coverage). **Ranking eligibi
 
 Three conclusions that hold across all 326 runs:
 
-- **High correctness does not imply reliable analysis** — a model can score 1.0 on correctness and 0.25 on statistical validity on the same task. Getting the number right is necessary but not sufficient.
+- **High correctness does not imply reliable analysis** — a model can score 1.0 on correctness and 0.45 on statistical validity on the same feature-engineering task. Getting the number right is necessary but not sufficient.
 - **Model selection should be category-driven, not ranking-driven** — the #1 overall model loses to a free Groq model on modeling tasks. Aggregate leaderboard position is a starting point, not a decision.
 - **Cost-performance tradeoffs are large enough to change production architecture** — GPT-4.1 delivers near-identical quality to GPT-5 at 15× lower cost. At scale, that gap determines whether agentic data workflows are economically viable.
 
@@ -367,13 +367,13 @@ dab run --all --model gpt-4.1
 dab run eda_001 --model gpt-4.1 --runs 3
 dab run --all --model gpt-4.1 --runs 3
 
-# 11. See all supported models + API key status
+# 12. See all supported models + API key status
 dab models
 ```
 
 ---
 
-## Tasks (29 total — 23 synthetic · 6 real-data)
+## Tasks (39 total — 33 synthetic · 6 real-data)
 
 The 6 real-data tasks (`eda_004`, `eda_005`, `feat_006`, `model_006`, `stat_006`, `mod_006`) use
 **real, publicly licensed datasets** from UCI and sklearn's built-in collection. Ground truths are
@@ -565,7 +565,7 @@ The scorer cannot verify that a reported p-value was computed correctly — it d
 
 **What is the coverage threshold for ranking?**
 
-A model must complete **≥80% of tasks** (currently ≥32 of 39) to be eligible for the ranked leaderboard. Models below this threshold appear in a "partial coverage" section, are not assigned a rank, and are visually flagged. Their averages cannot be fairly compared against full-coverage models because different task sets have different difficulty distributions. Currently all 12 models ran on the original 23 tasks at 100% coverage; new tasks (24–39) will be run as part of the next benchmark cycle. The 80% threshold is enforced dynamically in the leaderboard code. See [SCORING_SPEC.md §10](SCORING_SPEC.md) for the full policy.
+A model must complete **≥80% of tasks** to be eligible for the ranked leaderboard. Models below this threshold appear in a "partial coverage" section, are not assigned a rank, and are visually flagged. Their averages cannot be fairly compared against full-coverage models because different task sets have different difficulty distributions. Currently all 12 models ran on the original 23 tasks at 100% coverage; new tasks (24–39) will be run as part of the next benchmark cycle. The 80% threshold is enforced dynamically in the leaderboard code. See [SCORING_SPEC.md §10](SCORING_SPEC.md) for the full policy.
 
 ---
 
@@ -598,7 +598,7 @@ To validate this difference empirically, a future version will run a subset of a
 
 **String-match correctness scoring.** Ground-truth matching for some tasks checks for the presence of key values or phrases in the final answer. Verbose outputs may satisfy the check when terse correct outputs do not. This is a known limitation of automated scoring; it is most relevant to the EDA tasks.
 
-**Coverage policy.** Models with <80% task coverage are excluded from ranking and flagged separately. Currently all 12 models are at full 39/39 coverage. The policy is enforced dynamically and documented in [SCORING_SPEC.md §10](SCORING_SPEC.md).
+**Coverage policy.** Models with <80% task coverage are excluded from ranking and flagged separately. Currently all 12 models have run the original 23-task set at 100% coverage; tasks 24–39 will be added in the next benchmark cycle. The policy is enforced dynamically and documented in [SCORING_SPEC.md §10](SCORING_SPEC.md).
 
 **No multi-turn, RAG, or long-context scenarios.** RDAB tests single-session agentic loops on structured tabular data. It does not cover retrieval-augmented generation, multi-session memory, or tasks requiring context beyond a single DataFrame.
 
