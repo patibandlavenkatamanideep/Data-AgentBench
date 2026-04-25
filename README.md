@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench/actions"><img src="https://github.com/patibandlavenkatamanideep/RealDataAgentBench/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/tests-161%20passing-brightgreen" alt="Tests"></a>
+  <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/tests-168%20passing-brightgreen" alt="Tests"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python"></a>
   <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
   <a href="https://patibandlavenkatamanideep.github.io/RealDataAgentBench/"><img src="https://img.shields.io/badge/leaderboard-live-brightgreen" alt="Leaderboard"></a>
@@ -71,7 +71,7 @@ A 95% CI on 150 samples is approximately ±0.08. An AUC of 0.84 could plausibly 
 A 22% pay gap finding drives an HR investigation. Controlled for job level and tenure, the gap is 3.1% — still worth addressing, but the response is very different. The model correctly computed the raw gap. It failed to note what the raw number means.
 
 **Across a team running 500 analyses per month:**
-If 60% of outputs lack appropriate uncertainty bounds (consistent with RDAB's ~0.25 stat-validity finding), that is 300 analysis outputs per month where a decision-maker has no basis for knowing how much to trust the number. At scale, this degrades the value of agentic data workflows.
+If 60% of outputs lack appropriate uncertainty bounds (consistent with RDAB's finding that modeling and feature engineering tasks average 0.45–0.51 stat-validity while correctness exceeds 0.83), that is 300 analysis outputs per month where a decision-maker has no basis for knowing how much to trust the number. At scale, this degrades the value of agentic data workflows.
 
 RDAB gives you a number for this risk before you commit to a provider.
 
@@ -85,6 +85,26 @@ RDAB gives you a number for this risk before you commit to a provider.
 | **Data science leads** | Compare models on the dimensions that matter for your team's workflow — not just accuracy |
 | **AI researchers** | Study statistical reasoning and validity in LLM outputs with a reproducible, transparent framework |
 | **Hiring managers / technical evaluators** | A live benchmark with published methodology and real numbers is a concrete portfolio signal |
+
+---
+
+## RDAB vs Existing Benchmarks
+
+The table below compares design features. **No head-to-head empirical runs have been executed across benchmarks** — these are design-intent differences, not validated performance comparisons.
+
+| Feature | **RDAB** | AgentBench | DA-Code | ScienceAgentBench | HELM |
+|---------|:--------:|:----------:|:-------:|:-----------------:|:----:|
+| Statistical validity dimension | ✓ | ✗ | ✗ | Partial | ✗ |
+| Seeded reproducible datasets | ✓ | ✓ | ✗ | ✗ | ✓ |
+| Per-run cost tracking | ✓ | ✗ | ✗ | ✗ | ✗ |
+| Fully local (no external download) | ✓ | ✗ | ✗ | ✗ | ✗ |
+| Category-aware scoring | ✓ | ✗ | ✗ | Partial | Partial |
+| LLM-as-judge calibration | ✓ | ✗ | ✗ | ✗ | ✗ |
+| 95% CI on leaderboard | ✓ | ✗ | ✗ | ✗ | ✗ |
+| Open source harness | ✓ | ✓ | ✓ | ✗ | ✓ |
+| Real-data tasks | ✓ | ✗ | ✓ | ✓ | ✗ |
+
+**The core differentiator:** RDAB measures *how* an agent reasons, not just *what* it outputs. A model that reports AUC = 0.84 without a confidence interval scores well on correctness-only benchmarks but poorly on RDAB's statistical validity dimension — capturing a class of reasoning failures that existing benchmarks don't measure.
 
 ---
 
@@ -122,7 +142,7 @@ Synthetic datasets are generated from seeded NumPy/Pandas operations — they do
 - **No ground-truth validation against reality:** The "correct" skewness or correlation is defined by the generator — not by any external authority.
 - **Memorization risk:** A model could in principle achieve perfect correctness on synthetic tasks if it memorized the generator's output patterns from training data. The 6 real-data tasks (using independently verifiable UCI/sklearn datasets) are not subject to this risk.
 
-These limitations are documented. The 0.25 statistical validity finding is not a synthetic-data artifact — it appears on both synthetic and real-data tasks, and the scoring rubric is identical across both.
+These limitations are documented. The stat-validity gap (modeling and feature engineering tasks averaging 0.45–0.51 despite correctness ≥ 0.83) is not a synthetic-data artifact — it appears on both synthetic and real-data tasks, and the scoring rubric is identical across both.
 
 ### Scoring independence
 
@@ -364,8 +384,9 @@ dab score outputs/eda_001_<timestamp>.json
 dab run --all --model gpt-4.1
 
 # 11. Run 3× per task for 95% CI estimates (triples cost but gives defensible uncertainty bounds)
-dab run eda_001 --model gpt-4.1 --runs 3
-dab run --all --model gpt-4.1 --runs 3
+#     Use --temperature 0 for deterministic outputs — reduces variance noise in CI estimation
+dab run eda_001 --model gpt-4.1 --runs 3 --temperature 0
+dab run --all --model gpt-4.1 --runs 3 --temperature 0
 
 # 12. See all supported models + API key status
 dab models
@@ -545,8 +566,9 @@ pytest tests/ --cov=realdataagentbench --cov-report=term-missing
 - [x] Phase 7 — 12 models: GPT-5, GPT-4.1, GPT-4.1-mini, GPT-4.1-nano, Grok-3-mini, Gemini 2.5 Flash, Llama 3.3 via Groq; 326 total runs
 - [x] Phase 8 — 6 real-data tasks (UCI/sklearn): Breast Cancer, Iris, Diabetes, Wine, ANOVA; SCORING_SPEC.md v1.2; coverage threshold policy; benchmark methodology docs
 - [x] Phase 9 — Scorer fixes: category-aware stat-validity (was EDA-only); multi-run CI via `--runs N`; LLM-as-judge scorer for calibration; scorer correlation matrix
+- [x] Phase 10 — Full scorer rigor: category-aware interpretation check (Check 3 now category-specific, not EDA-only); expanded vocabulary for modeling/feature-engineering/ML engineering; `--temperature` flag for deterministic multi-run mode; 7 new tests
 - [ ] Run calibration script (`calibrate_stat_validity.py`) and publish Cohen's κ agreement between lexical scorer and LLM judge
-- [ ] Run ≥3× per task for defensible CI estimates; report variance across runs
+- [ ] Run ≥3× per task at temperature=0 for defensible CI estimates; report variance across runs
 - [ ] 30+ tasks (visualization, NLP, time series categories)
 - [ ] arXiv paper
 
@@ -557,7 +579,14 @@ pytest tests/ --cov=realdataagentbench --cov-report=term-missing
 
 **How is stat-validity scored? Isn't that just keyword matching?**
 
-Yes, it is lexical. The scorer checks the agent's final answer for four binary signals: (1) uncertainty language such as "p-value", "confidence interval", or "standard error"; (2) an appropriate statistical method mentioned by name (category-specific — EDA tasks check for correlation/IQR, stat-inference tasks check for t-test/chi-squared/ANOVA, modeling tasks check for CV/AUC/precision, etc.); (3) correct interpretation signals such as "statistically significant" or "controlling for"; and (4) absence of p-hacking language. The score is the fraction of checks that pass.
+Yes, it is lexical. The scorer applies four binary checks to the agent's final answer, all of which are **category-aware**:
+
+1. **Uncertainty quantification** — Does the answer report a p-value, CI, standard deviation, or other uncertainty signal? Extended vocabulary covers ML uncertainty (bootstrap CI, variance, stability, robustness).
+2. **Appropriate method vocabulary** — Does the answer name a method appropriate to the task category? EDA tasks check for correlation/IQR; stat-inference tasks check for t-test/chi-squared/ANOVA; modeling tasks check for CV/AUC/precision; feature-engineering and ML engineering tasks have their own vocab lists.
+3. **Analytical interpretation** — Does the answer show understanding beyond bare numbers? This is **category-specific**: modeling tasks are checked for overfitting/generalization signals; feature-engineering tasks for multicollinearity/leakage awareness; ML engineering tasks for selection-bias/calibration reasoning; stat-inference for effect size/practical significance; EDA for confounding/causation awareness.
+4. **Absence of p-hacking signals** — No language suggesting the method was chosen to achieve significance.
+
+Score = checks_passed / 4 (0.25 increments). Check 4 almost always passes, so the practical floor is 0.25; the other three require substantive output.
 
 The scorer cannot verify that a reported p-value was computed correctly — it detects the vocabulary, not the reasoning. To quantify this limitation, `scripts/calibrate_stat_validity.py` compares the lexical scorer to an LLM judge (Claude) on a stratified sample of real agent outputs, reporting Pearson correlation and per-criterion Cohen's kappa. For a full list of signals, the exact regexes, and a worked manual re-score, see [docs/methodology/stat_validity.md](docs/methodology/stat_validity.md).
 
@@ -569,20 +598,9 @@ A model must complete **≥80% of tasks** to be eligible for the ranked leaderbo
 
 ---
 
-**What's the difference between RDAB and AgentBench / DA-Code / ScienceAgentBench?**
+**What's the difference between RDAB and AgentBench / DA-Code / ScienceAgentBench / HELM?**
 
-The table below compares design features — **no head-to-head empirical runs have been executed across benchmarks**. These are design-intent differences, not validated performance comparisons.
-
-| Feature | RDAB | AgentBench | DA-Code | ScienceAgentBench |
-|---------|:----:|:----------:|:-------:|:-----------------:|
-| Statistical validity dimension | ✓ | ✗ | ✗ | Partial |
-| Seeded reproducible datasets | ✓ | ✓ | ✗ | ✗ |
-| Per-run cost tracking | ✓ | ✗ | ✗ | ✗ |
-| Fully local (no external download) | ✓ | ✗ | ✗ | ✗ |
-| Human expert baseline | Planned | ✗ | ✗ | ✗ |
-| LLM-as-judge calibration | ✓ | ✗ | ✗ | ✗ |
-| Open source harness | ✓ | ✓ | ✓ | ✗ |
-| 95% CI on leaderboard | ✓ | ✗ | ✗ | ✗ |
+See the [RDAB vs Existing Benchmarks](#rdab-vs-existing-benchmarks) table above for a full design-feature comparison.
 
 The key differentiator is that RDAB measures **how** an agent reasons, not just **what** it outputs. A model that reports AUC=0.84 without a confidence interval, or that computes a correlation without noting the confounding structure, scores well on correctness-only benchmarks but poorly on RDAB's statistical validity dimension.
 
@@ -592,7 +610,7 @@ To validate this difference empirically, a future version will run a subset of a
 
 ## Known Limitations
 
-**Lexical stat-validity scorer.** The `stat_validity` scorer is pattern-based. It uses category-specific vocabulary lists — EDA/stat-inference tasks check for correlation/IQR/t-test vocabulary; modeling/feature-engineering/ml-engineering tasks check for their respective methods. The scorer detects vocabulary, not reasoning quality: a model that spells out "confidence interval" scores the same as one that correctly computes and interprets one. `scripts/calibrate_stat_validity.py` measures agreement between the lexical scorer and an LLM judge (Pearson r and Cohen's κ) to quantify this limitation. See [docs/methodology/stat_validity.md](docs/methodology/stat_validity.md).
+**Lexical stat-validity scorer.** The `stat_validity` scorer is pattern-based. All four checks are category-aware: each category has its own method vocabulary list (Check 2) and its own interpretation signal list (Check 3 — overfitting/generalization for modeling, leakage/stability for feature engineering, selection-bias/calibration for ML engineering, etc.). The scorer detects vocabulary, not reasoning quality: a model that writes "confidence interval" without computing one still passes Check 1. `scripts/calibrate_stat_validity.py` measures agreement between the lexical scorer and an LLM judge (Pearson r and Cohen's κ) to quantify this limitation. See [docs/methodology/stat_validity.md](docs/methodology/stat_validity.md).
 
 **Seeded synthetic datasets.** 33 of 39 tasks use seeded, reproducible dataset generators. This ensures reproducibility but means RDAB does not test robustness to real-world data quality issues — missing values in unexpected columns, mixed dtypes, inconsistent encoding, corrupted records. The 6 real-data tasks (UCI/sklearn) partially address this, but even those use clean, well-known datasets. Performance on real production data may differ.
 
@@ -623,11 +641,12 @@ git clone https://github.com/patibandlavenkatamanideep/RealDataAgentBench
 cd RealDataAgentBench
 pip install -e ".[dev]"
 cp .env.example .env          # add your API key(s)
-dab run --all --model gpt-4.1 # ~$0.88 for all 39 tasks
+dab run --all --model gpt-4.1 # ~$0.88 for all 39 tasks (single run)
+dab run --all --model gpt-4.1 --runs 3 --temperature 0  # 95% CI estimates (~$2.64)
 python scripts/build_leaderboard.py
 ```
 
-All dataset generators are seeded. Running with the same model and `random_state` settings will reproduce the published scores within scoring tolerance.
+All dataset generators are seeded. Running with the same model, `random_state` settings, and `--temperature 0` will reproduce the published scores within scoring tolerance. Single-run scores are point estimates; use `--runs 3` or more for confidence intervals.
 
 To cite:
 
@@ -644,11 +663,13 @@ To cite:
 
 ---
 
-## Related: CostGuard
+## CostGuard — Practical Companion Tool
 
-**CostGuard** is a companion tool built alongside RDAB that lets you upload your own CSV and run a live cost-performance analysis against any model — without writing code.
+> **This is a separate project.** RDAB is a research benchmark — fixed tasks, published methodology, reproducible runs. CostGuard is a practical interactive tool built independently alongside RDAB.
 
-Where RDAB is a fixed benchmark (seeded datasets, published scores, reproducible runs), CostGuard is interactive: you bring your data, it runs the analysis and returns results. The privacy guarantee ("your data is processed in memory and never stored") applies to CostGuard, not to RDAB — RDAB uses only its own seeded and public datasets and never touches user-uploaded files.
+**CostGuard** lets you upload your own CSV and run a live cost-performance analysis against any model — without writing code. Where RDAB evaluates on seeded benchmark tasks with transparent ground truth, CostGuard is interactive: you bring your data, it runs the analysis on your dataset and returns results in real time.
+
+Key distinction: RDAB uses only its own seeded and publicly licensed datasets — it never touches user-uploaded files. CostGuard processes your data in memory and does not store it server-side (see the CostGuard repo for its own privacy policy).
 
 > **[Live app →](https://costguard-production-3afa.up.railway.app/)** &nbsp;·&nbsp; **[GitHub →](https://github.com/patibandlavenkatamanideep/CostGuard)**
 

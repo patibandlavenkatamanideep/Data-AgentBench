@@ -104,23 +104,72 @@ if error: efficiency × 0.5
 
 ## 4. Statistical Validity · Range 0.25 / 0.50 / 0.75 / 1.00
 
-**Intent:** A rigorous data scientist reports uncertainty, names the method used, interprets results in context, and avoids p-hacking. This dimension checks for those four qualities using vocabulary signals in the final answer. Checks are broad by design to be model-agnostic.
+**Intent:** A rigorous data scientist reports uncertainty, names the appropriate method, interprets results in context, and avoids p-hacking. This dimension checks for those four qualities using vocabulary signals in the final answer. All four checks are **category-aware** — each task category has its own vocabulary lists for Checks 2 and 3.
 
-| Check | What it looks for | ✅ Passes | ❌ Fails |
-|---|---|---|---|
-| **Uncertainty reporting** | Any of: *p-value, confidence interval, std, standard deviation, approximately, range, p = 0.0…* | *"mean ≈ $52k with std $18.4k"* | *"mean is $52,341"* |
-| **Appropriate method** | Any of: *pearson, spearman, correlation, IQR, z-score, skewness, kurtosis, histogram, log transform, normalization* | *"Pearson correlation = 0.43"* | *"logistic regression accuracy = 87%"* ⚠️ |
-| **Correct interpretation** | Any of: *correlation does not imply causation, confound*, *Simpson, spurious, statistically significant, distribution, skew* | *"correlated, but confounding variables are likely"* | *"income and health are related (r = 0.52)"* |
-| **No p-hacking** | None of: *tried different methods until significant, p just below 0.05* | *(default — never fired in 227 runs)* | *(aspirational)* |
+Score = checks passed / 4 (increments of 0.25). Minimum achievable score ≈ 0.25 (Check 4 almost always passes by default).
 
-Score = checks passed / 4.
+### Check 1 — Uncertainty Quantification
 
-⚠️ **Critical known limitation:** The method vocabulary is EDA-only. Models that correctly run logistic regression, t-tests, chi-squared, or cross-validation on non-EDA tasks cannot pass Check 2 — those terms are not in the list. This creates a structural 0.75 ceiling on all non-EDA tasks. Most non-EDA tasks score exactly 0.25 (only Check 4 passes by default). **A vocabulary extension to cover all task categories is the highest-priority planned fix.**
+Does the answer quantify uncertainty using any of: *p-value, confidence interval, std, standard deviation, standard error, approximately, range, bootstrap, variance, stability, robustness, reliability, prediction interval, error bar, margin of error*.
 
-| Category | Check 2 passable? | Typical score |
-|---|:---:|:---:|
-| EDA (3 tasks) | Yes | 0.50–0.75 |
-| Feature Engineering / Modeling / Stat. Inference / ML Eng. (20 tasks) | **No** | **0.25** |
+| ✅ Passes | ❌ Fails |
+|---|---|
+| *"mean ≈ $52k with std $18.4k"* | *"mean is $52,341"* |
+| *"AUC = 0.84 (bootstrap 95% CI: 0.79–0.89)"* | *"AUC is 0.84"* |
+
+### Check 2 — Appropriate Method Vocabulary (category-specific)
+
+Does the answer name a method appropriate to the task category?
+
+| Category | Example patterns that pass |
+|---|---|
+| `eda` | *pearson, spearman, correlation, IQR, z-score, skewness, kurtosis, log transform, normalization* |
+| `statistical_inference` | *t-test, z-test, chi-squared, Mann-Whitney, ANOVA, null hypothesis, degrees of freedom, two-proportion* |
+| `modeling` | *cross-validation, ROC-AUC, precision, recall, F1-score, confusion matrix, regularization, RMSE, learning curve* |
+| `feature_engineering` | *one-hot encoding, label encoding, imputation, feature selection, interaction term, SMOTE, target encoding, rolling* |
+| `ml_engineering` | *nested CV, data leakage, calibration, ensemble, hyperparameter, pipeline, stratification, Brier score, bootstrap* |
+| *(unknown)* | Always fails — no fallback to EDA vocabulary |
+
+### Check 3 — Analytical Interpretation (category-specific)
+
+Does the answer show analytical understanding beyond reporting a bare number? Each category has its own interpretation signals — this prevents EDA-specific language from being the only way to pass.
+
+| Category | Example signals that pass |
+|---|---|
+| `eda` | *correlation does not imply causation, controlling for, confounding, Simpson's paradox, spurious, statistically significant* |
+| `statistical_inference` | *statistically significant, reject null, effect size, practical significance, Type I error, normality assumption* |
+| `modeling` | *overfitting, generalization, bias-variance, selection bias, class imbalance, threshold, interpret, stability* |
+| `feature_engineering` | *multicollinearity, leakage, stability, ordinal relationship, dimensionality, sparsity* |
+| `ml_engineering` | *selection bias, optimistic bias, leakage, calibration, reliability, stratification, class imbalance* |
+| *(unknown)* | Falls back to EDA interpretation list |
+
+### Check 4 — Absence of P-Hacking Signals
+
+Does the answer avoid phrases suggesting the method was chosen to achieve significance? Patterns: *tried different methods until significant, p just below 0.05*.
+
+This check has not fired in over 300 benchmark runs — it is aspirational but retained as a guard against future failure modes.
+
+---
+
+**Worked example — `stat_001` (A/B test, category: `statistical_inference`):**
+
+Answer: *"The two-proportion z-test gives p = 0.0001 (z = 3.89). We reject the null hypothesis. Effect size is small (lift = 2.1 percentage points). The result is statistically significant but check practical significance given the cost of the intervention."*
+
+- Check 1 ✓ — "p = 0.0001" matches uncertainty patterns
+- Check 2 ✓ — "z-test" matches statistical_inference method vocab
+- Check 3 ✓ — "reject the null", "statistically significant", "practical significance" match interp patterns
+- Check 4 ✓ — no p-hacking signals
+- **Score = 1.00**
+
+**Worked example — `feat_002` (feature selection, category: `feature_engineering`):**
+
+Answer: *"Applied one-hot encoding to categorical columns. Random forest feature importance: income = 0.32, age = 0.18, credit = 0.11."*
+
+- Check 1 ✓ — "importance" does not match; but "range" or similar… actually no uncertainty language → ✗
+- Check 2 ✓ — "one-hot encoding" matches feature_engineering vocab
+- Check 3 ✗ — no leakage/stability/multicollinearity mention
+- Check 4 ✓ — no p-hacking signals
+- **Score = 0.50**
 
 ---
 
@@ -156,7 +205,7 @@ No source code required. Any reviewer can follow these steps:
 
 1. **Get the trace.** Find the JSON trace for the model + task. It contains `final_answer`, all tool calls, `total_input_tokens`, `total_output_tokens`, `num_steps`, and `error`.
 
-2. **Score statistical validity.** Apply the regex patterns from §4 Checks 1–4 against `final_answer` (case-insensitive). `stat_validity = (c1 + c2 + c3 + c4) / 4`.
+2. **Score statistical validity.** Apply the regex patterns from §4 Checks 1–4 against `final_answer` (case-insensitive). Use the task's category to select the correct Check 2 (method vocab) and Check 3 (interpretation) pattern list. `stat_validity = (c1 + c2 + c3 + c4) / 4`.
 
 3. **Score code quality.** Extract all `tool_input` values where `tool_name == "run_code"`. Apply the 5 binary checks from §2 to each. Average across snippets. (No snippets → 0.5.)
 
@@ -175,14 +224,15 @@ No source code required. Any reviewer can follow these steps:
 
 | ID | Dimension | Description | Status |
 |---|---|---|---|
-| **L1** | Stat Validity | Check 2 vocabulary is EDA-only — non-EDA tasks cannot pass it | 🔴 High priority — planned fix |
+| ~~**L1**~~ | ~~Stat Validity~~ | ~~Check 2 vocabulary is EDA-only~~ | ✅ **Fixed in v1.4** — all four checks are now category-aware |
 | **L2** | Efficiency | Token budgets calibrated on Claude Sonnet 4.6, not model-agnostic | 🔴 High priority — planned fix |
-| **L3** | Stat Validity | Check 1 accepts weak hedges ("approximately") as uncertainty | 🟡 Known, acceptable tradeoff |
-| **L4** | Stat Validity | Check 4 (p-hacking) has never fired — currently uninformative | 🟡 Aspirational, patterns too narrow |
-| **L5** | Correctness | Verbose numeric outputs can pass checks by accidental inclusion | 🟡 Partially mitigated by task design |
-| **L6** | Correctness | No contradiction detection across sentences | 🟠 Known fundamental limit of string scoring |
-| **L7** | Code Quality | Evaluates code form, not code correctness | ⚪ By design |
-| **L8** | Code Quality | Multi-snippet averaging may mask late-run quality issues | 🟢 Low impact, known |
+| **L3** | Stat Validity | Check 1 accepts weak hedges ("approximately", "range") as uncertainty | 🟡 Known, acceptable tradeoff |
+| **L4** | Stat Validity | Check 3 detects vocabulary, not reasoning quality — can't verify that "confidence interval" was correctly computed | 🟡 Mitigated by LLM-judge calibration script |
+| **L5** | Stat Validity | Check 4 (p-hacking) has never fired — aspirational guard | 🟡 Retained; patterns tightened in future iterations |
+| **L6** | Correctness | Verbose numeric outputs can pass checks by accidental inclusion | 🟡 Partially mitigated by task design |
+| **L7** | Correctness | No contradiction detection across sentences | 🟠 Known fundamental limit of string scoring |
+| **L8** | Code Quality | Evaluates code form, not code correctness | ⚪ By design |
+| **L9** | Code Quality | Multi-snippet averaging may mask late-run quality issues | 🟢 Low impact, known |
 
 ---
 
@@ -194,6 +244,7 @@ No source code required. Any reviewer can follow these steps:
 | 1.1 | 2026-04-17 | Added L9 (efficiency calibration bias), score floor table, reproducibility checklist |
 | 1.2 | 2026-04-18 | Added coverage threshold, real vs. synthetic classification, pass/fail examples, verification checklist |
 | 1.3 | 2026-04-18 | Condensed for print readability; promoted L1 and L2 to high priority |
+| **1.4** | **2026-04-25** | **Fixed L1: all four checks now category-aware. Check 3 (interpretation) has per-category signal lists for modeling/feature-engineering/ML engineering/stat-inference. Expanded Check 1 uncertainty vocab (bootstrap, variance, stability, robustness). Added `--temperature` flag for deterministic multi-run mode. 7 new tests.** |
 
 ---
 

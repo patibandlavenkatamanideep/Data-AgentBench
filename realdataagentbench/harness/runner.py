@@ -41,6 +41,7 @@ class Runner:
         dry_run: bool = False,
         budget: float | None = None,
         max_steps_override: int | None = None,
+        temperature: float = 1.0,
     ):
         self.registry = registry
         self.model = resolve_model(model)  # store canonical name, not alias
@@ -50,6 +51,7 @@ class Runner:
         self.dry_run = dry_run
         self.budget = budget
         self.max_steps_override = max_steps_override
+        self.temperature = temperature
 
     def run_task(self, task_id: str) -> dict:
         task = self.registry.get(task_id)
@@ -69,6 +71,7 @@ class Runner:
             timeout_seconds=task.evaluation.timeout_seconds,
             allowed_tools=task.evaluation.allowed_tools,
             budget=self.budget,
+            temperature=self.temperature,
         )
 
         result = self._build_result(task, trace, df)

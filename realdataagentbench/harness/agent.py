@@ -24,6 +24,7 @@ class Agent:
         timeout_seconds: int = 120,
         allowed_tools: list[str] | None = None,
         budget: float | None = None,
+        temperature: float = 1.0,
     ) -> Trace:
         tracer = Tracer(task_id=task_id, model=self.model)
         provider = get_provider(self.model, api_keys=self._api_keys)
@@ -36,6 +37,7 @@ class Agent:
                 allowed_tools=allowed_tools,
                 tracer=tracer,
                 budget=budget,
+                temperature=temperature,
             )
             error = None
             steps = len(tracer.trace.steps)

@@ -198,8 +198,15 @@ class BaseProvider(ABC):
         allowed_tools: list[str] | None,
         tracer,
         budget: float | None = None,
+        temperature: float = 1.0,
     ) -> str:
-        """Run the agentic loop. Returns final answer string."""
+        """Run the agentic loop. Returns final answer string.
+
+        Args:
+            temperature: Sampling temperature (0.0–2.0). Use temperature=0 for
+                deterministic outputs when running multiple independent runs for
+                confidence-interval estimation. Default 1.0 preserves prior behavior.
+        """
 
     def _filter_tools(self, allowed: list[str] | None) -> list[dict]:
         if not allowed:
@@ -222,7 +229,7 @@ class AnthropicProvider(BaseProvider):
         )
 
     def run(self, task_description, dataframe, max_steps, allowed_tools, tracer,
-            budget=None):
+            budget=None, temperature=1.0):
         import anthropic
         tools = self._filter_tools(allowed_tools)
         messages: list[dict] = [{"role": "user", "content": task_description}]
@@ -232,6 +239,7 @@ class AnthropicProvider(BaseProvider):
             response = self.client.messages.create(
                 model=self.model,
                 max_tokens=4096,
+                temperature=temperature,
                 system=SYSTEM_PROMPT,
                 tools=tools,
                 messages=messages,
@@ -335,7 +343,7 @@ class OpenAIProvider(BaseProvider):
                     raise
 
     def run(self, task_description, dataframe, max_steps, allowed_tools, tracer,
-            budget=None):
+            budget=None, temperature=1.0):
         tools = self._filter_tools(allowed_tools)
         oai_tools = self._tools_to_openai(tools)
 
@@ -354,6 +362,7 @@ class OpenAIProvider(BaseProvider):
                 tools=oai_tools,
                 tool_choice="auto",
                 max_completion_tokens=4096,
+                temperature=temperature,
             )
 
             choice = response.choices[0]
@@ -447,7 +456,7 @@ class GroqProvider(OpenAIProvider):
         )
 
     def run(self, task_description, dataframe, max_steps, allowed_tools, tracer,
-            budget=None):
+            budget=None, temperature=1.0):
         tools = self._filter_tools(allowed_tools)
         oai_tools = self._tools_to_openai(tools)
 
@@ -466,6 +475,7 @@ class GroqProvider(OpenAIProvider):
                 tools=oai_tools,
                 tool_choice="auto",
                 max_completion_tokens=4096,
+                temperature=temperature,
             )
 
             choice = response.choices[0]

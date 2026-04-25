@@ -119,7 +119,16 @@ def inspect_task(task_id):
     metavar="N",
     help="Number of independent runs per task (≥3 recommended for CI estimates).",
 )
-def run(task_id, run_all, difficulty, model, output_dir, dry_run, budget, max_steps, n_runs):
+@click.option(
+    "--temperature",
+    "temperature",
+    type=float,
+    default=1.0,
+    show_default=True,
+    metavar="T",
+    help="Sampling temperature (0.0–2.0). Use 0 for deterministic outputs when running --runs ≥3.",
+)
+def run(task_id, run_all, difficulty, model, output_dir, dry_run, budget, max_steps, n_runs, temperature):
     """Run a task (or all tasks) through the agent."""
     from .core.registry import TaskRegistry
     from .harness.runner import Runner
@@ -132,7 +141,9 @@ def run(task_id, run_all, difficulty, model, output_dir, dry_run, budget, max_st
     if max_steps is not None:
         console.print(f"[dim]Max steps override: {max_steps}[/dim]")
     if n_runs > 1:
-        console.print(f"[dim]Runs per task: {n_runs}[/dim]")
+        console.print(f"[dim]Runs per task: {n_runs} (temperature={temperature})[/dim]")
+    if temperature != 1.0:
+        console.print(f"[dim]Temperature: {temperature}[/dim]")
 
     runner = Runner(
         registry=registry,
@@ -141,6 +152,7 @@ def run(task_id, run_all, difficulty, model, output_dir, dry_run, budget, max_st
         dry_run=dry_run,
         budget=budget,
         max_steps_override=max_steps,
+        temperature=temperature,
     )
 
     if run_all:

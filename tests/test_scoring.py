@@ -222,6 +222,60 @@ class TestStatValidityScorer:
         result = self.scorer.score_detailed(answer, category="eda")
         assert result.uses_appropriate_test
 
+    # ------------------------------------------------------------------
+    # Category-specific interpretation checks (Check 3)
+    # ------------------------------------------------------------------
+
+    def test_modeling_interpretation_passes_on_overfitting_mention(self):
+        answer = (
+            "The model achieves ROC-AUC 0.91 on the test set. "
+            "However, the train AUC is 0.98, suggesting potential overfitting. "
+            "Regularization may improve generalization."
+        )
+        result = self.scorer.score_detailed(answer, category="modeling")
+        assert result.interprets_correctly
+
+    def test_modeling_interpretation_fails_on_bare_number(self):
+        answer = "ROC-AUC is 0.91. Feature importances: glucose 0.32, bmi 0.18, age 0.12."
+        result = self.scorer.score_detailed(answer, category="modeling")
+        assert not result.interprets_correctly
+
+    def test_feature_engineering_interpretation_passes_on_leakage_mention(self):
+        answer = (
+            "One-hot encoding was applied to categorical columns. "
+            "Care was taken to avoid leakage by fitting the encoder only on the training fold."
+        )
+        result = self.scorer.score_detailed(answer, category="feature_engineering")
+        assert result.interprets_correctly
+
+    def test_ml_engineering_interpretation_passes_on_selection_bias(self):
+        answer = (
+            "Nested CV was used to avoid selection bias from hyperparameter tuning. "
+            "The optimistic bias from tuning on the validation set would inflate reported AUC."
+        )
+        result = self.scorer.score_detailed(answer, category="ml_engineering")
+        assert result.interprets_correctly
+
+    def test_statistical_inference_interpretation_passes_on_significance(self):
+        answer = (
+            "The p-value of 0.002 indicates the result is statistically significant. "
+            "Effect size (Cohen's d = 0.42) is moderate, suggesting practical significance."
+        )
+        result = self.scorer.score_detailed(answer, category="statistical_inference")
+        assert result.interprets_correctly
+
+    def test_unknown_category_falls_back_to_eda_interpretation(self):
+        answer = "The skewness is positive. The distribution is right-skewed."
+        result = self.scorer.score_detailed(answer, category="unknown_category")
+        # EDA fallback — skew matches
+        assert result.interprets_correctly
+
+    def test_unknown_category_method_returns_false(self):
+        answer = "Used cross-validation and ROC-AUC."
+        result = self.scorer.score_detailed(answer, category="unknown_category")
+        # No vocab list for unknown category → False
+        assert not result.uses_appropriate_test
+
 
 # ---------------------------------------------------------------------------
 # Composite
