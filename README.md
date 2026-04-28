@@ -33,7 +33,7 @@ Models that report metrics without uncertainty bounds are dangerous in productio
 
 ---
 
-## Leaderboard — 1180 runs · 12 models · up to 39 tasks
+## Leaderboard — 1412 runs · 12 models · up to 39 tasks
 
 **Coverage transparency — what each row means:**
 
@@ -42,7 +42,8 @@ Models that report metrics without uncertainty bounds are dangerous in productio
 | **Free (full CI)** | Gemini 2.5 Flash, Llama 3.3-70b, Grok-3-mini | **39/39** | **5 runs** | **✓ Full CI** |
 | **Tier 1 GPT (full CI)** | gpt-4.1-mini | **39/39** | **3 runs** | **✓ Full CI** |
 | **Tier 2 mid (full CI)** | gpt-4.1, gpt-4o | **39/39** | **3 runs** | **✓ Full CI** |
-| Tier 1/2 (partial) | gpt-4.1-nano, gpt-4o-mini, claude-haiku | 37/39, 30/39, 30/39↑ | 3 runs | CI in progress |
+| **Tier 1 GPT (full CI)** | gpt-4.1-nano, gpt-4o-mini | **39/39** | **3 runs** | **✓ Full CI** |
+| Tier 2 mid (in progress) | claude-haiku | 33/39 ↑ | 3 runs target | Phase 4 running |
 | **Tier 3 (expensive)** | **claude-sonnet, gpt-5, claude-opus** | **23/39** | **n=1 point estimates** | **No CI — cost-prohibitive** |
 
 **Ranking eligibility requires ≥80% task coverage** — see [SCORING_SPEC.md §10](SCORING_SPEC.md#10-ranking-eligibility--coverage-threshold).
@@ -53,17 +54,17 @@ Models that report metrics without uncertainty bounds are dangerous in productio
 | Rank | Model | Avg RDAB Score | Runs | Avg Cost / Task | Stat Validity | Coverage |
 |:----:|-------|:--------------:|:----:|:---------------:|:-------------:|:--------:|
 | 1 | **gpt-4.1** | **0.875** | 119 | $0.0332 | 0.747 | **39/39** ✓ |
-| 2 | **gpt-4.1-mini** | **0.872** | 119 | $0.0102 | 0.746 | **39/39** ✓ |
+| 2 | **gpt-4.1-mini** | **0.870** | 133 | $0.0102 | 0.746 | **39/39** ✓ |
 | — | claude-sonnet-4-6 ⚠️ | 0.857 | 29 | $0.3170 | **0.851** | 23/39 |
-| 3 | gpt-4o | 0.851 | 129 | $0.0528 | 0.751 | **39/39** ✓ |
+| 3 | gpt-4o | 0.851 | 130 | $0.0528 | 0.751 | **39/39** ✓ |
 | — | claude-opus-4-6 ⚠️ | 0.846 | 23 | $1.6276 | 0.793 | 23/39 |
 | 4 | grok-3-mini | 0.827 | 228 | $0.0037 | 0.704 | **39/39** ✓ |
 | 5 | llama-3.3-70b | 0.798 | 71 | $0.0018 | 0.694 | **39/39** ✓ |
-| — | claude-haiku-4-5 † | 0.793 | 68 | $0.0395 | 0.750 | 30/39 ↑ |
-| — | gpt-4o-mini † | 0.785 | 63 | $0.0120 | 0.770 | 30/39 |
+| — | claude-haiku-4-5 † | 0.801 | 180 | $0.0395 | 0.750 | 33/39 ↑ |
+| 6 | gpt-4o-mini | 0.785 | 123 | $0.0120 | 0.770 | **39/39** ✓ |
 | — | gpt-5 ⚠️ | 0.780 | 32 | $0.6713 | 0.690 | 23/39 |
-| 6 | gemini-2.5-flash | 0.662 | 206 | $0.0017 | 0.538 | **39/39** ✓ |
-| 7 | gpt-4.1-nano † | 0.624 | 93 | $0.0101 | 0.685 | 37/39 |
+| 7 | gemini-2.5-flash | 0.662 | 206 | $0.0017 | 0.538 | **39/39** ✓ |
+| 8 | gpt-4.1-nano | 0.624 | 138 | $0.0101 | 0.685 | **39/39** ✓ |
 
 > ✓ = full 39-task coverage with multi-run CI  
 > † = multi-run CI in progress / partial coverage  
@@ -82,7 +83,7 @@ Models that report metrics without uncertainty bounds are dangerous in productio
 
 ## 🔍 Key Findings
 
-From 1180 runs across 12 models and up to 39 tasks — patterns observed in actual benchmark output, not hypothetical.
+From 1412 runs across 12 models and up to 39 tasks — patterns observed in actual benchmark output, not hypothetical.
 
 ---
 
@@ -168,7 +169,7 @@ Built with transparent scoring specs, reproducible datasets, real-world data tas
 
 → **39 tasks** — 33 synthetic + **6 real-data tasks** (UCI Breast Cancer, Iris, Diabetes, Wine — real clinical and scientific datasets)  
 → **4-dimensional scoring** — correctness, code quality, efficiency, statistical validity  
-→ **12 models, 1180 runs** — free models (Gemini, Llama, Grok), gpt-4.1-mini, gpt-4.1, and gpt-4o at full 39-task multi-run CI; Tier 3 expensive models at n=1 on 23 tasks; claude-haiku CI in progress  
+→ **12 models, 1412 runs** — 9 models at full 39-task multi-run CI; Tier 3 expensive models at n=1 on 23 tasks; claude-haiku CI in progress (33/39)  
 → **[Fully transparent scoring](SCORING_SPEC.md)** — every formula, regex, threshold, and known limitation documented; independently verifiable without reading source code  
 → **[Pre-registered experiment](docs/experiments/uncertainty_uplift_design.md)** — controlled test of uncertainty prompting uplift, committed before execution
 
@@ -213,7 +214,7 @@ The table below compares design features. **No head-to-head empirical runs have 
 
 ## 🧠 What this means
 
-Three conclusions that hold across all 1180 runs:
+Three conclusions that hold across all 1412 runs:
 
 - **High correctness does not imply reliable analysis** — a model can score 1.0 on correctness and 0.45 on statistical validity on the same feature-engineering task. Getting the number right is necessary but not sufficient.
 - **Model selection should be category-driven, not ranking-driven** — the #1 overall model (gpt-4.1) is beaten by claude-sonnet on modeling tasks. A free Groq model (Llama) beats GPT-5 overall. Aggregate leaderboard position is a starting point, not a decision.
@@ -250,7 +251,7 @@ The experiment design is fully pre-registered in [docs/experiments/uncertainty_u
 
 - **Every score is independently reproducible.** [SCORING_SPEC.md](SCORING_SPEC.md) documents every formula, regex, threshold, and known limitation. No source code reading required.
 - **Known limitations are disclosed.** The stat-validity scorer is lexical — it detects vocabulary, not reasoning quality. A calibration script (`scripts/calibrate_stat_validity.py`) measures agreement between the lexical scorer and an LLM judge, giving a quantified bound on the gap.
-- **Partial-coverage models are excluded from ranking.** Any model with <80% task coverage is flagged and excluded from the ranked leaderboard. Their scores are not averaged against different task sets. Models with ≥80% coverage: gpt-4.1 (39/39), gpt-4.1-mini (39/39), gpt-4o (39/39), grok-3-mini (39/39), llama-3.3-70b (39/39), gemini-2.5-flash (39/39), gpt-4.1-nano (37/39). All others are flagged as partial.
+- **Partial-coverage models are excluded from ranking.** Any model with <80% task coverage is flagged and excluded from the ranked leaderboard. Their scores are not averaged against different task sets. Models with ≥80% coverage: gpt-4.1 (39/39), gpt-4.1-mini (39/39), gpt-4o (39/39), gpt-4o-mini (39/39), gpt-4.1-nano (39/39), grok-3-mini (39/39), llama-3.3-70b (39/39), gemini-2.5-flash (39/39). All others are flagged as partial.
 - **Datasets are real where it matters.** Six tasks use publicly licensed real-world datasets (UCI Breast Cancer, Iris, Diabetes, Wine) with ground truths computed independently from the data.
 - **The key experiment is pre-registered.** The uncertainty prompting uplift experiment has committed outcome interpretations before any runs are executed.
 
