@@ -585,7 +585,7 @@
       <span class="divider"></span>
       <button class="filter-btn"        data-filter="all"                  data-type="data_source">All Data</button>
       <button class="filter-btn"        data-filter="real"                 data-type="data_source" title="6 tasks using publicly licensed real-world datasets (UCI/sklearn)">🔬 Real Data</button>
-      <button class="filter-btn"        data-filter="synthetic"            data-type="data_source" title="23 tasks using seeded synthetic generators">Synthetic</button>
+      <button class="filter-btn"        data-filter="synthetic"            data-type="data_source" title="33 tasks using seeded synthetic generators">Synthetic</button>
     </div>
 
     <div id="table-loading" style="display:none"></div>
@@ -620,7 +620,7 @@
   &nbsp;·&nbsp; LLM evaluation · agent systems · statistically robust AI
   &nbsp;·&nbsp;
   <a href="https://github.com/patibandlavenkatamanideep/RealDataAgentBench" target="_blank">RealDataAgentBench on GitHub</a>
-  &nbsp;·&nbsp; <span id="footer-stats">23 tasks · 4-dimension scoring</span>
+  &nbsp;·&nbsp; <span id="footer-stats">39 tasks · 12 models · 4-dimension scoring</span>
 </footer>
 
 <script>
@@ -882,7 +882,7 @@
           <div class="rank" style="color:var(--muted)">—</div>
           <div class="name" title="${s.model}" style="font-style:italic">${s.model}</div>
           <div class="score score-${tier}">${s.avg_dab_score.toFixed(3)}</div>
-          <div class="tasks-run" style="color:var(--red-dark)">${s.tasks_run} / 23 tasks</div>
+          <div class="tasks-run" style="color:var(--red-dark)">${s.tasks_run} / ${totalTasks} tasks</div>
           <div class="avg-cost">avg $${(s.avg_cost_usd || 0).toFixed(4)} / task</div>
         </div>`;
     }).join('');

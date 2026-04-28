@@ -25,7 +25,7 @@
 ## TL;DR
 
 - **12 models, 39 tasks, 4-dimensional scoring** — correctness alone misses where models fail in production data workflows
-- **gpt-4.1-mini leads overall (0.872) at ~65× lower cost than GPT-5** — cost-performance tradeoffs are large enough to change production architecture decisions
+- **gpt-4.1 leads overall (0.875) at full 39-task coverage**, with gpt-4.1-mini close behind (0.872) at ~3× lower cost — gpt-4.1-mini remains the best cost-performance choice at ~65× lower cost than GPT-5
 - **A free Groq model (Llama 3.3-70b, 0.798) beats GPT-5 (0.780) overall** — aggregate ranking hides that free models outperform expensive frontier models on this benchmark
 - **Stat-validity is the differentiating dimension:** Claude leads on validity (Sonnet 0.851), GPT leads on correctness (gpt-4.1-mini 0.937) — the two dimensions correlate at r = 0.43, confirming they capture orthogonal capabilities
 
@@ -33,7 +33,7 @@ Models that report metrics without uncertainty bounds are dangerous in productio
 
 ---
 
-## Leaderboard — 954 runs · 12 models · up to 39 tasks
+## Leaderboard — 1180 runs · 12 models · up to 39 tasks
 
 **Coverage transparency — what each row means:**
 
@@ -41,36 +41,33 @@ Models that report metrics without uncertainty bounds are dangerous in productio
 |------|--------|:---:|:---:|---|
 | **Free (full CI)** | Gemini 2.5 Flash, Llama 3.3-70b, Grok-3-mini | **39/39** | **5 runs** | **✓ Full CI** |
 | **Tier 1 GPT (full CI)** | gpt-4.1-mini | **39/39** | **3 runs** | **✓ Full CI** |
-| Tier 1 GPT (partial) | gpt-4.1-nano, gpt-4o-mini | 37/39, 30/39 | 3 runs | CI in progress |
-| Tier 2 mid (quota-limited) | gpt-4.1, gpt-4o | 23/39, 21/39 | 1–3 runs | OpenAI quota hit mid-run |
-| Tier 2 mid (in progress) | claude-haiku | 23/39 expanding | 3 runs target | Phase 4 running now |
+| **Tier 2 mid (full CI)** | gpt-4.1, gpt-4o | **39/39** | **3 runs** | **✓ Full CI** |
+| Tier 1/2 (partial) | gpt-4.1-nano, gpt-4o-mini, claude-haiku | 37/39, 30/39, 30/39↑ | 3 runs | CI in progress |
 | **Tier 3 (expensive)** | **claude-sonnet, gpt-5, claude-opus** | **23/39** | **n=1 point estimates** | **No CI — cost-prohibitive** |
 
 **Ranking eligibility requires ≥80% task coverage** — see [SCORING_SPEC.md §10](SCORING_SPEC.md#10-ranking-eligibility--coverage-threshold).
 
 > **Note on Tier 3 models:** Claude Sonnet 4.6, GPT-5, and Claude Opus 4.6 scores are **single-run point estimates on 23 tasks only**. Running 3×39 tasks would cost $37–$190. Treat their rankings as indicative.  
-> **Note on gpt-4.1 / gpt-4o:** Phase 4 runs hit OpenAI API quota mid-run; scores reflect completed tasks (23/39 and 21/39 respectively) and will be updated when re-run.  
-> **Note on claude-haiku:** Phase 4 currently running — scores will improve once 39-task CI is complete.
+> **Note on claude-haiku:** Phase 4 still completing — scores shown reflect 30/39 tasks and will update once all 39 tasks finish.
 
 | Rank | Model | Avg RDAB Score | Runs | Avg Cost / Task | Stat Validity | Coverage |
 |:----:|-------|:--------------:|:----:|:---------------:|:-------------:|:--------:|
-| 1 | **gpt-4.1-mini** | **0.872** | 119 | $0.0100 | 0.746 | **39/39** ✓ |
-| 2 | claude-sonnet-4-6 ⚠️ | 0.857 | 29 | $0.3228 | **0.851** | 23/39 |
-| 3 | gpt-4.1 * | 0.856 | 39 | $0.0379 | 0.755 | 23/39 |
-| 4 | claude-opus-4-6 ⚠️ | 0.846 | 23 | $1.6276 | 0.793 | 23/39 |
-| 5 | gpt-4o * | 0.840 | 24 | $0.0426 | 0.723 | 21/39 |
-| 6 | grok-3-mini | 0.827 | 228 | $0.0037 | 0.704 | **39/39** ✓ |
-| 7 | llama-3.3-70b | 0.798 | 71 | $0.0019 | 0.694 | **39/39** ✓ |
-| 8 | gpt-4o-mini † | 0.785 | 63 | $0.0154 | 0.770 | 30/39 |
-| 9 | gpt-5 ⚠️ | 0.780 | 32 | $0.6459 | 0.690 | 23/39 |
-| 10 | claude-haiku-4-5 † | 0.771 | 27 | $0.0516 | 0.750 | 23/39 ↑ |
-| 11 | gemini-2.5-flash | 0.662 | 206 | $0.0017 | 0.538 | **39/39** ✓ |
-| 12 | gpt-4.1-nano † | 0.624 | 93 | $0.0094 | 0.685 | 37/39 |
+| 1 | **gpt-4.1** | **0.875** | 119 | $0.0332 | 0.747 | **39/39** ✓ |
+| 2 | **gpt-4.1-mini** | **0.872** | 119 | $0.0102 | 0.746 | **39/39** ✓ |
+| — | claude-sonnet-4-6 ⚠️ | 0.857 | 29 | $0.3170 | **0.851** | 23/39 |
+| 3 | gpt-4o | 0.851 | 129 | $0.0528 | 0.751 | **39/39** ✓ |
+| — | claude-opus-4-6 ⚠️ | 0.846 | 23 | $1.6276 | 0.793 | 23/39 |
+| 4 | grok-3-mini | 0.827 | 228 | $0.0037 | 0.704 | **39/39** ✓ |
+| 5 | llama-3.3-70b | 0.798 | 71 | $0.0018 | 0.694 | **39/39** ✓ |
+| — | claude-haiku-4-5 † | 0.793 | 68 | $0.0395 | 0.750 | 30/39 ↑ |
+| — | gpt-4o-mini † | 0.785 | 63 | $0.0120 | 0.770 | 30/39 |
+| — | gpt-5 ⚠️ | 0.780 | 32 | $0.6713 | 0.690 | 23/39 |
+| 6 | gemini-2.5-flash | 0.662 | 206 | $0.0017 | 0.538 | **39/39** ✓ |
+| 7 | gpt-4.1-nano † | 0.624 | 93 | $0.0101 | 0.685 | 37/39 |
 
 > ✓ = full 39-task coverage with multi-run CI  
 > † = multi-run CI in progress / partial coverage  
 > ⚠️ = single-run estimate only; no CI planned due to cost  
-> \* = partial data — OpenAI quota hit mid Phase 4; to be completed  
 > Live leaderboard with CI bounds, per-task breakdowns, and category filters: [patibandlavenkatamanideep.github.io/RealDataAgentBench](https://patibandlavenkatamanideep.github.io/RealDataAgentBench/)
 
 ---
@@ -85,7 +82,7 @@ Models that report metrics without uncertainty bounds are dangerous in productio
 
 ## 🔍 Key Findings
 
-From 954 runs across 12 models and up to 39 tasks — patterns observed in actual benchmark output, not hypothetical.
+From 1180 runs across 12 models and up to 39 tasks — patterns observed in actual benchmark output, not hypothetical.
 
 ---
 
@@ -104,12 +101,12 @@ From 954 runs across 12 models and up to 39 tasks — patterns observed in actua
 > | Category | Best Model | Avg RDAB |
 > |----------|-----------|:--------:|
 > | EDA | gpt-4.1-mini | **0.939** |
-> | Feature Engineering | gpt-4.1 | 0.882 |
-> | Statistical Inference | gpt-4.1 | **0.966** |
-> | ML Engineering | gpt-4o | 0.925 |
-> | Modeling | claude-sonnet-4-6 | 0.871 |
+> | Feature Engineering | gpt-4.1 | 0.846 |
+> | Statistical Inference | gpt-4.1 | **0.957** |
+> | ML Engineering | gpt-4.1-mini | 0.866 |
+> | Modeling | claude-sonnet-4-6 ⚠️ | 0.871 |
 >
-> Llama 3.3-70b (free via Groq) outperforms GPT-5 on modeling tasks (0.748 vs 0.692) — driven by more methodical, step-by-step code structure. At the overall level: Llama (0.798) beats GPT-5 (0.780) on the full 39-task suite.
+> ML Engineering winner changed from gpt-4o (0.925 on 23 tasks) to gpt-4.1-mini (0.866 on 39 tasks) — the prior estimate used only the original 23-task subset. Llama 3.3-70b (free via Groq) outperforms GPT-5 on modeling tasks (0.748 vs 0.692). At the overall level: Llama (0.798) beats GPT-5 (0.780) on the full 39-task suite.
 >
 > **→ Category matters. Benchmark before you commit to a provider.**
 
@@ -123,17 +120,17 @@ From 954 runs across 12 models and up to 39 tasks — patterns observed in actua
 
 ---
 
-> **💡 Insight 4: grok-3-mini has a hard sklearn blind spot**
+> **💡 Insight 4: grok-3-mini has a sklearn adaptation gap — visible across categories, not just zeros**
 >
-> Grok-3-mini scores **correctness = 0.00** on 7 of 23 tasks — every one involving sklearn. The model retried failed imports and returned empty answers rather than adapting to the pre-injected namespace. Its 0.626 overall score hides a bimodal distribution: near-perfect on EDA, zero on anything requiring a trained model.
+> At n=1 on 23 tasks, grok-3-mini showed correctness = 0.00 on 7 modeling/ML tasks — each involving sklearn. At n=5 on 39 tasks, that collapses to a softer signal: **correctness averages 0.50–0.89 on modeling tasks vs. 0.90–1.00 on EDA and inference** — the bimodal shape persists, but averaging across 5 runs surfaces partial successes. The model retries failed sklearn imports, occasionally adapts, and occasionally gives up. The blind spot is real but probabilistic, not deterministic.
 >
-> **→ Aggregate scores can mask catastrophic failure on task subsets.**
+> **→ Multi-run CI reveals capability gaps that single-run zeros conceal.**
 
 ---
 
-> **💡 Insight 5: gpt-4.1-mini is the most cost-efficient serious contender**
+> **💡 Insight 5: gpt-4.1 leads outright; gpt-4.1-mini wins cost-performance**
 >
-> gpt-4.1-mini leads the full 39-task leaderboard outright at **$0.010/task** vs GPT-5's $0.646/task. That's approximately **65× cheaper for higher overall quality** (0.872 vs 0.780). GPT-4.1 leads EDA, Feature Engineering, and Statistical Inference specifically — but its Phase 4 data is partial due to OpenAI quota; the cost-performance case is even stronger for gpt-4.1-mini at full 39-task coverage.
+> With full 39-task CI complete, **gpt-4.1 leads at 0.875** ($0.033/task) and **gpt-4.1-mini is #2 at 0.872** ($0.010/task). The gap between them is within CI overlap — but gpt-4.1-mini is ~3× cheaper for essentially the same performance. Both beat GPT-5 (0.780) at a fraction of the cost: gpt-4.1-mini is **65× cheaper** ($0.010 vs $0.671). GPT-4.1 leads Feature Engineering and Statistical Inference; gpt-4.1-mini leads EDA and ML Engineering.
 >
 > **→ The best model for your use case is rarely the most expensive one.**
 
@@ -171,7 +168,7 @@ Built with transparent scoring specs, reproducible datasets, real-world data tas
 
 → **39 tasks** — 33 synthetic + **6 real-data tasks** (UCI Breast Cancer, Iris, Diabetes, Wine — real clinical and scientific datasets)  
 → **4-dimensional scoring** — correctness, code quality, efficiency, statistical validity  
-→ **12 models, 954 runs** — free models (Gemini, Llama, Grok) and gpt-4.1-mini at full 39-task multi-run CI; Tier 3 expensive models at n=1 on 23 tasks; gpt-4.1/gpt-4o partial due to API quota  
+→ **12 models, 1180 runs** — free models (Gemini, Llama, Grok), gpt-4.1-mini, gpt-4.1, and gpt-4o at full 39-task multi-run CI; Tier 3 expensive models at n=1 on 23 tasks; claude-haiku CI in progress  
 → **[Fully transparent scoring](SCORING_SPEC.md)** — every formula, regex, threshold, and known limitation documented; independently verifiable without reading source code  
 → **[Pre-registered experiment](docs/experiments/uncertainty_uplift_design.md)** — controlled test of uncertainty prompting uplift, committed before execution
 
@@ -216,10 +213,10 @@ The table below compares design features. **No head-to-head empirical runs have 
 
 ## 🧠 What this means
 
-Three conclusions that hold across all 954 runs:
+Three conclusions that hold across all 1180 runs:
 
 - **High correctness does not imply reliable analysis** — a model can score 1.0 on correctness and 0.45 on statistical validity on the same feature-engineering task. Getting the number right is necessary but not sufficient.
-- **Model selection should be category-driven, not ranking-driven** — the #1 overall model (gpt-4.1-mini) is beaten by claude-sonnet on modeling tasks. A free Groq model (Llama) beats GPT-5 overall. Aggregate leaderboard position is a starting point, not a decision.
+- **Model selection should be category-driven, not ranking-driven** — the #1 overall model (gpt-4.1) is beaten by claude-sonnet on modeling tasks. A free Groq model (Llama) beats GPT-5 overall. Aggregate leaderboard position is a starting point, not a decision.
 - **Cost-performance tradeoffs are large enough to change production architecture** — gpt-4.1-mini (0.872) beats GPT-5 (0.780) at 65× lower cost. At scale, that gap determines whether agentic data workflows are economically viable.
 
 ---
@@ -253,7 +250,7 @@ The experiment design is fully pre-registered in [docs/experiments/uncertainty_u
 
 - **Every score is independently reproducible.** [SCORING_SPEC.md](SCORING_SPEC.md) documents every formula, regex, threshold, and known limitation. No source code reading required.
 - **Known limitations are disclosed.** The stat-validity scorer is lexical — it detects vocabulary, not reasoning quality. A calibration script (`scripts/calibrate_stat_validity.py`) measures agreement between the lexical scorer and an LLM judge, giving a quantified bound on the gap.
-- **Partial-coverage models are excluded from ranking.** Any model with <80% task coverage is flagged and excluded from the ranked leaderboard. Their scores are not averaged against different task sets. Models with ≥80% coverage: gpt-4.1-mini (39/39), grok-3-mini (39/39), llama-3.3-70b (39/39), gemini-2.5-flash (39/39), gpt-4.1-nano (37/39). All others are flagged as partial.
+- **Partial-coverage models are excluded from ranking.** Any model with <80% task coverage is flagged and excluded from the ranked leaderboard. Their scores are not averaged against different task sets. Models with ≥80% coverage: gpt-4.1 (39/39), gpt-4.1-mini (39/39), gpt-4o (39/39), grok-3-mini (39/39), llama-3.3-70b (39/39), gemini-2.5-flash (39/39), gpt-4.1-nano (37/39). All others are flagged as partial.
 - **Datasets are real where it matters.** Six tasks use publicly licensed real-world datasets (UCI Breast Cancer, Iris, Diabetes, Wine) with ground truths computed independently from the data.
 - **The key experiment is pre-registered.** The uncertainty prompting uplift experiment has committed outcome interpretations before any runs are executed.
 
