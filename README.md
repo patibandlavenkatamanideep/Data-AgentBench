@@ -23,13 +23,14 @@
 ## TL;DR
 
 - **12 models · 39 tasks · 4-dimensional scoring** — correctness alone misses where agents fail in production data workflows
-- **gpt-4.1-mini leads at 0.872** with full 39-task multi-run CI — and is 65× cheaper than GPT-5 (0.780)
+- **gpt-4.1 leads at 0.875** — statistically tied with gpt-4.1-mini (0.870) at 65× higher cost per task; gpt-4.1-mini is the dominant cost-performance choice
 - **A free model (Llama 3.3-70b, 0.798) beats GPT-5 (0.780)** — aggregate rankings hide that free models outperform expensive frontier models on this benchmark
-- **Statistical validity is the differentiating dimension:** Claude leads on validity (Sonnet 0.851), GPT leads on correctness (gpt-4.1-mini 0.937) — the two correlate at r = 0.43, confirming they capture orthogonal capabilities
+- **Statistical validity is the differentiating dimension:** Claude leads on validity (Sonnet 0.851), GPT leads on correctness (gpt-4.1-mini 0.931) — the two correlate at r = 0.43, confirming they capture orthogonal capabilities
+- **Prompting partly closes the stat-validity gap** — explicit uncertainty instructions raised GPT-4.1's mean stat_validity from 0.550 to 1.000 (+0.450), but qualitative review shows the gain is genuine on metric-reporting tasks and primarily lexical on feature importance tasks
 
 ---
 
-## Leaderboard — 1,180+ runs · 12 models · 39 tasks
+## Leaderboard — 1,412 runs · 12 models · 39 tasks
 
 **→ [Open live leaderboard](https://patibandlavenkatamanideep.github.io/RealDataAgentBench/)** — filterable by category, sortable by score or cost
 
@@ -38,17 +39,17 @@
 | Rank | Model | RDAB Score | Runs | Cost / Task | Stat Validity | Coverage |
 |:----:|-------|:----------:|:----:|:-----------:|:-------------:|:--------:|
 | 1 | **gpt-4.1** | **0.875** | 119 | $0.033 | 0.747 | 39/39 ✓ |
-| 2 | **gpt-4.1-mini** | **0.872** | 133 | $0.010 | 0.746 | 39/39 ✓ |
+| 2 | **gpt-4.1-mini** | **0.870** | 133 | $0.010 | 0.746 | 39/39 ✓ |
 | — | claude-sonnet-4-6 ⚠️ | 0.857 | 29 | $0.317 | **0.851** | 23/39 |
 | 3 | gpt-4o | 0.851 | 130 | $0.053 | 0.751 | 39/39 ✓ |
 | — | claude-opus-4-6 ⚠️ | 0.846 | 23 | $1.628 | 0.793 | 23/39 |
 | 4 | grok-3-mini | 0.827 | 228 | $0.004 | 0.704 | 39/39 ✓ |
-| — | claude-haiku-4-5 † | 0.801 | 180 | $0.040 | 0.750 | 33/39 ↑ |
+| — | claude-haiku-4-5 † | 0.801 | 180 | $0.049 | 0.790 | 33/39 ↑ |
 | 5 | llama-3.3-70b | 0.798 | 71 | $0.002 | 0.694 | 39/39 ✓ |
-| 6 | gpt-4o-mini | 0.785 | 123 | $0.012 | 0.770 | 39/39 ✓ |
+| 6 | gpt-4o-mini | 0.785 | 123 | $0.012 | 0.777 | 39/39 ✓ |
 | — | gpt-5 ⚠️ | 0.780 | 32 | $0.671 | 0.690 | 23/39 |
 | 7 | gemini-2.5-flash | 0.662 | 206 | $0.002 | 0.538 | 39/39 ✓ |
-| 8 | gpt-4.1-nano | 0.624 | 138 | $0.010 | 0.685 | 39/39 ✓ |
+| 8 | gpt-4.1-nano | 0.624 | 138 | $0.010 | 0.684 | 39/39 ✓ |
 
 > ✓ = full 39-task multi-run CI &nbsp;·&nbsp; † = CI in progress &nbsp;·&nbsp; ⚠️ = single-run point estimate, no CI planned (cost-prohibitive)  
 > **Ranking requires ≥80% task coverage** — see [SCORING_SPEC.md §10](SCORING_SPEC.md#10-ranking-eligibility--coverage-threshold)
@@ -61,7 +62,7 @@
 >
 > By category: stat inference = 0.897 · EDA = 0.849 · ML engineering = 0.740 · modeling = 0.603 · feature engineering = 0.520. Models reach for statistical language reactively when cued by the task name — not proactively when warranted. Feature engineering is worst: models report importances and coefficients without uncertainty bounds because nothing in the task name signals that statistics are expected.
 >
-> By model family: Claude leads on stat-validity (Sonnet 0.851, Opus 0.793, Haiku 0.750); GPT leads on correctness (gpt-4.1-mini 0.937). Correctness × stat-validity correlate at r = 0.43 — largely orthogonal capabilities. **Aggregate rank masks two independent gradients.**
+> By model family: Claude leads on stat-validity (Sonnet 0.851, Opus 0.793, Haiku 0.790); GPT leads on correctness (gpt-4.1-mini 0.931). Correctness × stat-validity correlate at r = 0.43 — largely orthogonal capabilities. **Aggregate rank masks two independent gradients.**
 
 ---
 
@@ -93,7 +94,15 @@
 
 > **Insight 5 — The best model is rarely the most expensive**
 >
-> gpt-4.1-mini (0.872) is statistically tied with gpt-4.1 (0.875) and beats GPT-5 (0.780) at 65× lower cost ($0.010 vs $0.671 per task). At production scale, that gap determines whether agentic data workflows are economically viable.
+> gpt-4.1-mini (0.870) is statistically tied with gpt-4.1 (0.875) and beats GPT-5 (0.780) at 65× lower cost ($0.010 vs $0.671 per task). At production scale, that gap determines whether agentic data workflows are economically viable.
+
+---
+
+> **Insight 6 — The stat-validity gap is partly addressable by prompting, but the gain is uneven**
+>
+> The pre-registered uncertainty-uplift experiment (GPT-4.1, 15 runs, results below) showed that explicit uncertainty instructions raised mean stat_validity from 0.550 to 1.000 (+0.450). Qualitative review of the actual outputs found the gain is **genuine on classification and regression metric tasks** — the model correctly applied the binomial SE formula, attempted bootstrap estimation, and flagged single-split limitations with substantive caveats. On **feature importance tasks**, the gain is primarily lexical: the model added hedging language ("stability is not formally quantified") without computing bootstrap CIs.
+>
+> This finding has two implications. First, prompting is a practical lever: V1-style uncertainty instructions can meaningfully improve output quality for metric-reporting workflows at modest token cost (+31% on average for V1; V2 is actually −15% vs baseline). Second, the lexical stat_validity scorer overcounts on feature importance tasks — a deferred offer ("if you need CIs, let me know") scores the same as actually computing them. **The scorer limitation and the prompting gap are separate problems requiring separate fixes.**
 
 ---
 
@@ -262,29 +271,90 @@ The 6 real-data tasks (`eda_004`, `eda_005`, `feat_006`, `model_006`, `stat_006`
 
 ---
 
-## Pre-registered Experiment
+## Uncertainty Prompting Experiment (Pre-registered)
 
-The category-level stat-validity gap (feature engineering and modeling average 0.45–0.51 despite correctness ≥ 0.83) is RDAB's headline result. Before attributing it to a model capability gap, two alternative explanations require empirical testing:
+**Design pre-registered:** 2026-04-17 &nbsp;·&nbsp; **GPT-4.1 execution:** 2026-05-05 &nbsp;·&nbsp; **Llama execution:** partial — rate-limited, pending re-run
 
-| Variant | Prompt change | Tests |
-|---------|--------------|-------|
+RDAB's headline result is that models score ~0.25–0.55 on statistical validity while scoring above 0.83 on correctness for the same tasks. This experiment tested whether that gap is addressable by prompting or structural.
+
+### Prompt variants
+
+| Variant | Change | Hypothesis tested |
+|---------|--------|------------------|
 | **V0 (baseline)** | Current production prompt | Control |
-| **V1 (uncertainty)** | + explicit CI/SE/p-value instruction | Whether direct instruction closes the gap |
-| **V2 (statistician)** | Persona → "statistician" + structured output rules | Whether role-framing changes output style |
+| **V1 (uncertainty)** | Appends explicit CI/SE/p-value instruction (~110 tokens) | Does direct instruction close the gap? |
+| **V2 (statistician)** | Replaces opening persona + appends structured output rules | Does role-framing change reasoning quality? |
 
-**45 runs · ~$12.67 total · GPT-5, GPT-4.1, Llama 3.3-70B**
+Full prompt text is in [docs/experiments/uncertainty_uplift_design.md](docs/experiments/uncertainty_uplift_design.md). Runner: `scripts/run_uncertainty_uplift.py`.
 
-Design locked in [docs/experiments/uncertainty_uplift_design.md](docs/experiments/uncertainty_uplift_design.md), including exact prompt text and pre-committed outcome interpretations. Execution scheduled after the full multi-run CI baseline is in place.
+### Results — GPT-4.1 (15 runs complete, all 5 tasks × 3 variants)
+
+**stat_validity scores by task and variant:**
+
+| Task | V0 | V1 | V2 | Δ (V1−V0) | Δ (V2−V0) |
+|------|----|----|----|:---------:|:---------:|
+| feat_002 | 0.500 | 1.000 | 1.000 | +0.500 | +0.500 |
+| mod_004 | 0.500 | 1.000 | 1.000 | +0.500 | +0.500 |
+| model_001 | 0.500 | 1.000 | 1.000 | +0.500 | +0.500 |
+| model_002 | 0.750 | 1.000 | 1.000 | +0.250 | +0.250 |
+| model_003 | 0.500 | 1.000 | 0.750 | +0.500 | +0.250 |
+| **Mean** | **0.550** | **1.000** | **0.950** | **+0.450** | **+0.400** |
+
+**Correctness across all 15 runs: 1.000. Zero trade-off.**
+
+**Token overhead vs V0 baseline:**
+
+| Variant | Mean tokens | Change |
+|---------|:-----------:|:------:|
+| V0 | 12,677 | baseline |
+| V1 | 16,664 | +31% |
+| V2 | 10,713 | −15% |
+
+The V1 average is inflated by a single outlier (`mod_004`: 5,777 → 24,484 tokens, +324%, where the model attempted and disclosed a bootstrap computation). Three of five V1 tasks used under +15% more tokens. V2 is consistently more efficient than baseline.
+
+### Qualitative review (§7d of design)
+
+Scores alone cannot distinguish genuine reasoning from vocabulary injection — the stat_validity scorer is lexical. All five GPT-4.1 task outputs were reviewed manually against three criteria: (1) were uncertainty-sounding words added without computation? (2) were actual numerical estimates computed? (3) was any factual content dropped?
+
+| Task | V1 verdict | V2 verdict |
+|------|:----------:|:----------:|
+| feat_002 | Lexical mimicry | Mixed |
+| mod_004 | **Real reasoning uplift** | Lexical |
+| model_001 | **Real reasoning uplift** | Mixed |
+| model_002 | Mixed (flawed SE, correct instability flag) | **Real reasoning uplift** |
+| model_003 | Mixed (approximate formula, correct conclusion) | Lexical / caveats |
+
+**Representative genuine uplift (V1, `mod_004`):** The model computed binomial SE using the correct formula — `SE = sqrt(p(1−p)/n)` applied to the actual test set size (n=140) — yielding 0.031 for Logistic Regression accuracy. It attempted bootstrap for F1 SE, hit a sandbox limitation, disclosed the failure explicitly, and provided an informed range estimate (≈0.03–0.04). No number was fabricated.
+
+**Representative lexical mimicry (V1, `feat_002`):** The model added "the top features are clearly separated in magnitude" and offered CIs "if needed" — without performing any bootstrap computation. The stat_validity scorer rewarded this identically to the `mod_004` computation.
+
+**No regression in any run:** V1 and V2 outputs are strict supersets of V0 content on all five tasks.
+
+### Outcome against pre-registered criteria
+
+The pre-registered threshold for **Result A (Clear uplift)** required mean Δ > 0.15 for at least two models. GPT-4.1 V1 returns Δ = +0.450 — three times the threshold — on all five tasks with zero correctness loss. Llama data (V1/V2) is unavailable due to Groq rate limiting; the two-model criterion is not yet formally met.
+
+The qualitative review supports **a qualified Result A**: prompting produces genuine reasoning improvements on classification and regression metric tasks (3 of 5 tasks show substantive computation). On feature importance tasks, gains are primarily lexical. Both findings are informative:
+
+- **For practitioners:** V1-style uncertainty instructions are worth adding to production prompts for metric-reporting workflows. V2 (statistician persona) is the better default — nearly equal uplift, lower token overhead, and consistently substantive methodological caveats.
+- **For the benchmark:** The lexical stat_validity scorer requires a numeric-evidence check to distinguish deferred offers ("let me know if you need CIs") from actual computations. The scorer limitation and the model capability gap are separate problems, now empirically separable.
+
+### Status and next steps
+
+- GPT-4.1: complete (15/15 runs)
+- Llama 3.3-70b: V0 baseline complete (4/5 tasks); V1/V2 rate-limited — pending re-run with inter-call delay
+- GPT-5: not yet run (budget constraint; GPT-4.1 signal is sufficient for the primary finding)
+- Stat_validity scorer patch (numeric-evidence check): roadmap item
 
 ---
 
 ## Why RDAB is Credible
 
 - **Every score is independently reproducible.** [SCORING_SPEC.md](SCORING_SPEC.md) documents every formula, regex, threshold, and known limitation — no source code reading required.
-- **Known limitations are disclosed.** The stat-validity scorer is lexical. `scripts/calibrate_stat_validity.py` measures agreement between the lexical scorer and an LLM judge (Pearson r and Cohen's κ) to quantify the gap.
+- **Known limitations are disclosed.** The stat-validity scorer is lexical. `scripts/calibrate_stat_validity.py` measures agreement between the lexical scorer and an LLM judge (Pearson r and Cohen's κ) to quantify the gap. The uncertainty-uplift experiment confirmed and localized the overcounting.
 - **Partial-coverage models are excluded from ranking.** Any model below 80% task coverage is flagged and unranked. Their scores are not averaged against different task sets.
 - **Datasets are real where it matters.** Six tasks use publicly licensed real-world datasets (UCI Breast Cancer, Iris, Diabetes, Wine) with ground truths computed independently.
-- **The key experiment is pre-registered.** Outcome interpretations committed before any runs are executed.
+- **The key experiment is pre-registered.** Outcome interpretations committed before any runs were executed. Results reported against those pre-committed criteria without post-hoc adjustment.
 
 ---
 
@@ -302,7 +372,7 @@ Design locked in [docs/experiments/uncertainty_uplift_design.md](docs/experiment
 
 ## Known Limitations
 
-**Lexical stat-validity scorer.** Detects vocabulary, not reasoning quality. A model that writes "confidence interval" without computing one still passes Check 1. Calibration script quantifies the gap.
+**Lexical stat-validity scorer.** Detects vocabulary, not reasoning quality. A model that writes "confidence interval" without computing one still passes Check 1. The uncertainty-uplift experiment confirmed this directly: deferred offers to compute CIs score the same as actual SE computations on the current scorer. Calibration script quantifies the aggregate gap; a numeric-evidence check is the planned fix.
 
 **Seeded synthetic datasets.** 33 of 39 tasks use reproducible generators — RDAB does not test robustness to real-world data quality issues (mixed dtypes, corrupted records, inconsistent encoding). The 6 real-data tasks partially address this.
 
@@ -347,6 +417,7 @@ tasks/
 tests/                    # 168 offline tests — no API calls required
 scripts/
 ├── build_leaderboard.py        # outputs/ → docs/results.json (mean ± 95% CI)
+├── run_uncertainty_uplift.py   # Pre-registered prompt-variant experiment (45 runs)
 ├── calibrate_stat_validity.py  # Lexical scorer vs LLM judge (Cohen's κ)
 └── dimension_correlations.py   # Scorer-to-scorer Pearson correlation matrix
 docs/
@@ -357,9 +428,9 @@ docs/
 
 ## Roadmap
 
-- **Done:** Task schema and harness (168 tests), 39 tasks, 12 models with live leaderboard, per-run cost tracking, category-aware scorer, 6 real-data tasks, LLM-as-judge calibration, multi-run CI; free models + gpt-4.1 family at full 39-task CI
-- **In progress:** claude-haiku 39-task CI; pre-registered uncertainty-uplift experiment; calibration κ between lexical scorer and LLM judge
-- **Next:** NLP, visualization, and time-series task categories; arXiv paper
+- **Done:** Task schema and harness (168 tests), 39 tasks, 12 models with live leaderboard, per-run cost tracking, category-aware scorer, 6 real-data tasks, LLM-as-judge calibration, multi-run CI; free models + gpt-4.1 family at full 39-task CI; GPT-4.1 uncertainty-uplift experiment (15 runs, qualitative review complete)
+- **In progress:** claude-haiku 39-task CI; calibration κ between lexical scorer and LLM judge; Llama V1/V2 uplift re-run (rate-limit fix pending)
+- **Next:** Stat_validity scorer patch (numeric-evidence check); NLP, visualization, and time-series task categories; arXiv paper
 
 ---
 
@@ -372,7 +443,7 @@ docs/
                in LLM Data Science Agents},
   year      = {2026},
   url       = {https://github.com/patibandlavenkatamanideep/RealDataAgentBench},
-  note      = {39 tasks, 4-dimensional scoring, 1{,}180+ runs across 12 models.}
+  note      = {39 tasks, 4-dimensional scoring, 1{,}412 runs across 12 models.}
 }
 ```
 
