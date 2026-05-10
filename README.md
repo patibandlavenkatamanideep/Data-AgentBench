@@ -24,7 +24,7 @@
 
 - **12 models · 39 tasks · 4-dimensional scoring** — correctness alone misses where agents fail in production data workflows
 - **gpt-4.1 leads at 0.875** — statistically tied with gpt-4.1-mini (0.870) at 65× higher cost per task; gpt-4.1-mini is the dominant cost-performance choice
-- **A free model (Llama 3.3-70b, 0.798) beats GPT-5 (0.780)** — aggregate rankings hide that free models outperform expensive frontier models on this benchmark
+- **A free model (Llama 3.3-70b, 0.798) scores higher than GPT-5 (0.780)** — both on 39-task full coverage; GPT-5 scores on 23/39 tasks (single-run, cost-prohibitive to scale), so the gap is directional, not a head-to-head match
 - **Statistical validity is the differentiating dimension:** Claude leads on validity (Sonnet 0.851), GPT leads on correctness (gpt-4.1-mini 0.931) — the two correlate at r = 0.43, confirming they capture orthogonal capabilities
 - **Prompting partly closes the stat-validity gap** — explicit uncertainty instructions raised GPT-4.1's mean stat_validity from 0.550 to 1.000 (+0.450), but qualitative review shows the gain is genuine on metric-reporting tasks and primarily lexical on feature importance tasks
 
@@ -76,7 +76,7 @@
 > | ML Engineering | gpt-4.1-mini | 0.866 |
 > | Modeling | claude-sonnet-4-6 ⚠️ | 0.871 |
 >
-> Llama 3.3-70b (free) beats GPT-5 on modeling (0.748 vs 0.692) and overall (0.798 vs 0.780). **Benchmark before you commit to a provider.**
+> Llama 3.3-70b (free, 39/39 tasks) scores higher than GPT-5 (0.798 vs 0.780) — with the caveat that GPT-5 covers only 23/39 tasks (single-run, partial). The comparison is directional, not a controlled head-to-head. **Benchmark on your actual task mix before committing to a provider.**
 
 ---
 
@@ -94,7 +94,7 @@
 
 > **Insight 5 — The best model is rarely the most expensive**
 >
-> gpt-4.1-mini (0.870) is statistically tied with gpt-4.1 (0.875) and beats GPT-5 (0.780) at 65× lower cost ($0.010 vs $0.671 per task). At production scale, that gap determines whether agentic data workflows are economically viable.
+> gpt-4.1-mini (0.870) is statistically tied with gpt-4.1 (0.875) and scores higher than GPT-5 (0.780) at 65× lower cost ($0.010 vs $0.671 per task) — noting that GPT-5 covers 23/39 tasks vs 39/39 for gpt-4.1-mini. At production scale, that gap determines whether agentic data workflows are economically viable.
 
 ---
 
@@ -273,78 +273,20 @@ The 6 real-data tasks (`eda_004`, `eda_005`, `feat_006`, `model_006`, `stat_006`
 
 ## Uncertainty Prompting Experiment (Pre-registered)
 
-**Design pre-registered:** 2026-04-17 &nbsp;·&nbsp; **GPT-4.1 execution:** 2026-05-05 &nbsp;·&nbsp; **Llama execution:** partial — rate-limited, pending re-run
+**Design pre-registered:** 2026-04-17 &nbsp;·&nbsp; **GPT-4.1 execution:** 2026-05-05  
+**→ [Full results: docs/experiments/results_gpt41.md](docs/experiments/results_gpt41.md)**
 
-RDAB's headline result is that models score ~0.25–0.55 on statistical validity while scoring above 0.83 on correctness for the same tasks. This experiment tested whether that gap is addressable by prompting or structural.
+Can explicit uncertainty instructions close RDAB's correctness–validity gap? Three prompt variants (V0 baseline, V1 uncertainty instruction, V2 statistician persona) were run on 5 tasks with GPT-4.1 (15 runs). Llama V1/V2 pending re-run after Groq rate-limit fix.
 
-### Prompt variants
+**Summary (GPT-4.1, 5 tasks × 3 variants):**
 
-| Variant | Change | Hypothesis tested |
-|---------|--------|------------------|
-| **V0 (baseline)** | Current production prompt | Control |
-| **V1 (uncertainty)** | Appends explicit CI/SE/p-value instruction (~110 tokens) | Does direct instruction close the gap? |
-| **V2 (statistician)** | Replaces opening persona + appends structured output rules | Does role-framing change reasoning quality? |
+| Variant | Mean stat_validity | Δ vs V0 | Mean tokens | Token change |
+|---------|-----------------:|:-------:|:-----------:|:------------:|
+| V0 (baseline) | 0.550 | — | 12,677 | baseline |
+| V1 (uncertainty) | 1.000 | **+0.450** | 16,664 | +31% |
+| V2 (statistician) | 0.950 | +0.400 | 10,713 | −15% |
 
-Full prompt text is in [docs/experiments/uncertainty_uplift_design.md](docs/experiments/uncertainty_uplift_design.md). Runner: `scripts/run_uncertainty_uplift.py`.
-
-### Results — GPT-4.1 (15 runs complete, all 5 tasks × 3 variants)
-
-**stat_validity scores by task and variant:**
-
-| Task | V0 | V1 | V2 | Δ (V1−V0) | Δ (V2−V0) |
-|------|----|----|----|:---------:|:---------:|
-| feat_002 | 0.500 | 1.000 | 1.000 | +0.500 | +0.500 |
-| mod_004 | 0.500 | 1.000 | 1.000 | +0.500 | +0.500 |
-| model_001 | 0.500 | 1.000 | 1.000 | +0.500 | +0.500 |
-| model_002 | 0.750 | 1.000 | 1.000 | +0.250 | +0.250 |
-| model_003 | 0.500 | 1.000 | 0.750 | +0.500 | +0.250 |
-| **Mean** | **0.550** | **1.000** | **0.950** | **+0.450** | **+0.400** |
-
-**Correctness across all 15 runs: 1.000. Zero trade-off.**
-
-**Token overhead vs V0 baseline:**
-
-| Variant | Mean tokens | Change |
-|---------|:-----------:|:------:|
-| V0 | 12,677 | baseline |
-| V1 | 16,664 | +31% |
-| V2 | 10,713 | −15% |
-
-The V1 average is inflated by a single outlier (`mod_004`: 5,777 → 24,484 tokens, +324%, where the model attempted and disclosed a bootstrap computation). Three of five V1 tasks used under +15% more tokens. V2 is consistently more efficient than baseline.
-
-### Qualitative review (§7d of design)
-
-Scores alone cannot distinguish genuine reasoning from vocabulary injection — the stat_validity scorer is lexical. All five GPT-4.1 task outputs were reviewed manually against three criteria: (1) were uncertainty-sounding words added without computation? (2) were actual numerical estimates computed? (3) was any factual content dropped?
-
-| Task | V1 verdict | V2 verdict |
-|------|:----------:|:----------:|
-| feat_002 | Lexical mimicry | Mixed |
-| mod_004 | **Real reasoning uplift** | Lexical |
-| model_001 | **Real reasoning uplift** | Mixed |
-| model_002 | Mixed (flawed SE, correct instability flag) | **Real reasoning uplift** |
-| model_003 | Mixed (approximate formula, correct conclusion) | Lexical / caveats |
-
-**Representative genuine uplift (V1, `mod_004`):** The model computed binomial SE using the correct formula — `SE = sqrt(p(1−p)/n)` applied to the actual test set size (n=140) — yielding 0.031 for Logistic Regression accuracy. It attempted bootstrap for F1 SE, hit a sandbox limitation, disclosed the failure explicitly, and provided an informed range estimate (≈0.03–0.04). No number was fabricated.
-
-**Representative lexical mimicry (V1, `feat_002`):** The model added "the top features are clearly separated in magnitude" and offered CIs "if needed" — without performing any bootstrap computation. The stat_validity scorer rewarded this identically to the `mod_004` computation.
-
-**No regression in any run:** V1 and V2 outputs are strict supersets of V0 content on all five tasks.
-
-### Outcome against pre-registered criteria
-
-The pre-registered threshold for **Result A (Clear uplift)** required mean Δ > 0.15 for at least two models. GPT-4.1 V1 returns Δ = +0.450 — three times the threshold — on all five tasks with zero correctness loss. Llama data (V1/V2) is unavailable due to Groq rate limiting; the two-model criterion is not yet formally met.
-
-The qualitative review supports **a qualified Result A**: prompting produces genuine reasoning improvements on classification and regression metric tasks (3 of 5 tasks show substantive computation). On feature importance tasks, gains are primarily lexical. Both findings are informative:
-
-- **For practitioners:** V1-style uncertainty instructions are worth adding to production prompts for metric-reporting workflows. V2 (statistician persona) is the better default — nearly equal uplift, lower token overhead, and consistently substantive methodological caveats.
-- **For the benchmark:** The lexical stat_validity scorer requires a numeric-evidence check to distinguish deferred offers ("let me know if you need CIs") from actual computations. The scorer limitation and the model capability gap are separate problems, now empirically separable.
-
-### Status and next steps
-
-- GPT-4.1: complete (15/15 runs)
-- Llama 3.3-70b: V0 baseline complete (4/5 tasks); V1/V2 rate-limited — pending re-run with inter-call delay
-- GPT-5: not yet run (budget constraint; GPT-4.1 signal is sufficient for the primary finding)
-- Stat_validity scorer patch (numeric-evidence check): roadmap item
+Correctness held at 1.000 across all 15 runs — zero trade-off. Qualitative review found genuine reasoning uplift on 3 of 5 tasks (metric-reporting); on feature importance tasks the gain is primarily lexical. Two-model pre-registered criterion not yet met (Llama data pending). Full per-task verdicts and outcome assessment in the [results doc](docs/experiments/results_gpt41.md).
 
 ---
 
@@ -355,6 +297,7 @@ The qualitative review supports **a qualified Result A**: prompting produces gen
 - **Partial-coverage models are excluded from ranking.** Any model below 80% task coverage is flagged and unranked. Their scores are not averaged against different task sets.
 - **Datasets are real where it matters.** Six tasks use publicly licensed real-world datasets (UCI Breast Cancer, Iris, Diabetes, Wine) with ground truths computed independently.
 - **The key experiment is pre-registered.** Outcome interpretations committed before any runs were executed. Results reported against those pre-committed criteria without post-hoc adjustment.
+- **CI leaderboard re-scores, does not rebuild from scratch.** Raw `outputs/` traces are not committed to the repo (size). The GitHub Actions leaderboard workflow re-scores the existing `docs/results.json` when scoring logic changes — it cannot regenerate run data. To extend the leaderboard, run `dab run --all --model <model> --runs 3` locally and update `docs/results.json`.
 
 ---
 

@@ -26,6 +26,7 @@ import argparse
 import json
 import os
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -182,6 +183,12 @@ def run_experiment(
                 trace = result.get("trace", {})
                 tokens = trace.get("total_input_tokens", 0) + trace.get("total_output_tokens", 0)
                 print(f"  saved → {fname}  |  tokens={tokens:,}")
+
+                # Groq free tier: ~30k tokens/min. model_002 alone used 61k tokens.
+                # Wait 90 s between Groq calls so the rate-limit window resets.
+                if "llama" in model.lower() or "groq" in model.lower():
+                    print("  [groq] waiting 90 s for rate-limit reset...")
+                    time.sleep(90)
 
     print(f"\nDone. {done} run(s) written to {output_dir}/")
 
