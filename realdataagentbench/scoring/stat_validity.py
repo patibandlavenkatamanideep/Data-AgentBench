@@ -1,15 +1,25 @@
 """Statistical validity scorer — checks correct use of statistical methods.
 
-Four binary checks, all category-aware. Score = checks_passed / 4.
+Four checks, all category-aware. Score = sum(check_values) / 4.
 
-  Check 1 — uncertainty:    Does the answer quantify uncertainty?
+  Check 1 — uncertainty:    Does the answer quantify uncertainty with numeric evidence?
   Check 2 — method:         Does the answer name an appropriate method for the task category?
   Check 3 — interpretation: Does the answer show analytical understanding beyond bare numbers?
   Check 4 — no_p_hacking:   Is p-hacking language absent?
 
-Each check is scored 0 or 1; the composite is their mean (0.25 increments).
-The minimum achievable score is 0.25: check 4 (absence of a bad signal) almost
-always passes; the other three require the agent to produce something substantive.
+Check 1 is graded in thirds rather than binary:
+  1.0  — keyword matched AND a decimal number (numeric evidence) found within 200 chars
+  0.5  — keyword matched but purely lexical (no nearby numeric artifact)
+  0.0  — no match
+
+Checks 2–4 remain binary (0 or 1). Composite is the mean of the four check values
+(0.125 increments due to the partial Check 1).
+
+The 0.5 partial credit for lexical-only uncertainty language was introduced to
+distinguish deferred offers ("let me know if you need CIs") from actual computations
+(e.g., "SE = sqrt(p(1-p)/n) = 0.031"). The uncertainty-uplift experiment confirmed
+that the lexical scorer overcounts on feature importance tasks — this patch addresses
+that. See SCORING_SPEC.md §4 and docs/experiments/results_gpt41.md for background.
 
 Category-aware design
 ---------------------
@@ -20,10 +30,10 @@ to the task category.
 
 Known limitations (see SCORING_SPEC.md §4 for full details)
 ------------------------------------------------------------
-- Lexical: detects vocabulary, not reasoning quality. An agent that writes
-  "confidence interval" without computing one still passes check 1.
+- Check 1 still partially lexical: the numeric-evidence window is wide (200 chars)
+  and fires on any decimal number, not specifically a CI bound or SE value.
 - `scripts/calibrate_stat_validity.py` measures agreement with an LLM judge
-  (Pearson r and Cohen's κ) to quantify this limitation empirically.
+  (Pearson r and Cohen's κ) to quantify remaining gaps empirically.
 """
 
 from __future__ import annotations
@@ -35,7 +45,7 @@ from dataclasses import dataclass
 @dataclass
 class StatValidityResult:
     score: float
-    reports_uncertainty: bool
+    reports_uncertainty: float   # 0.0 / 0.5 / 1.0 (see Check 1 grading above)
     uses_appropriate_test: bool
     interprets_correctly: bool
     avoids_p_hacking_signals: bool
@@ -43,6 +53,11 @@ class StatValidityResult:
 
 class StatValidityScorer:
     """Score 0.0–1.0 based on statistical rigour signals in the final answer."""
+
+    # Matches any decimal number — used to detect numeric evidence near keyword hits.
+    _NUMERIC_EVIDENCE_RE = re.compile(r"\d+\.\d+")
+    # Characters on each side of a keyword hit to search for numeric evidence.
+    _NUMERIC_WINDOW = 200
 
     # ── Check 1: Uncertainty quantification ──────────────────────────────────
     # Broad vocabulary: statistical inference patterns + ML uncertainty signals.
@@ -176,17 +191,18 @@ class StatValidityScorer:
     def score_detailed(self, answer: str, category: str = "eda") -> StatValidityResult:
         answer_lower = answer.lower()
 
-        uncertainty = any(
-            re.search(p, answer_lower) for p in self.UNCERTAINTY_PATTERNS
-        )
+        uncertainty = self._check_uncertainty(answer_lower)
         appropriate_test = self._check_method_vocab(answer_lower, category)
         correct_interp = self._check_interpretation(answer_lower, category)
         no_p_hacking = not any(
             re.search(p, answer_lower) for p in self.P_HACKING_SIGNALS
         )
 
-        checks = [uncertainty, appropriate_test, correct_interp, no_p_hacking]
-        score = round(sum(checks) / len(checks), 4)
+        score = round(
+            (uncertainty + (1 if appropriate_test else 0) +
+             (1 if correct_interp else 0) + (1 if no_p_hacking else 0)) / 4,
+            4,
+        )
 
         return StatValidityResult(
             score=score,
@@ -195,6 +211,23 @@ class StatValidityScorer:
             interprets_correctly=correct_interp,
             avoids_p_hacking_signals=no_p_hacking,
         )
+
+    def _has_numeric_evidence(self, text: str, match_start: int, match_end: int) -> bool:
+        """Return True if a decimal number appears within the evidence window of the match."""
+        lo = max(0, match_start - self._NUMERIC_WINDOW)
+        hi = min(len(text), match_end + self._NUMERIC_WINDOW)
+        return bool(self._NUMERIC_EVIDENCE_RE.search(text[lo:hi]))
+
+    def _check_uncertainty(self, answer_lower: str) -> float:
+        """Check 1 (graded): keyword + numeric evidence → 1.0; keyword only → 0.5; none → 0.0."""
+        has_lexical = False
+        for pattern in self.UNCERTAINTY_PATTERNS:
+            m = re.search(pattern, answer_lower)
+            if m:
+                has_lexical = True
+                if self._has_numeric_evidence(answer_lower, m.start(), m.end()):
+                    return 1.0
+        return 0.5 if has_lexical else 0.0
 
     def _check_method_vocab(self, answer_lower: str, category: str) -> bool:
         """Check 2: Does the answer use vocabulary appropriate to the task category?"""

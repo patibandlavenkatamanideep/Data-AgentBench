@@ -119,12 +119,27 @@ MODEL_SHORT = {v: v for v in EXPERIMENT_MODELS.values()}  # short labels for fil
 
 # ── Runner ────────────────────────────────────────────────────────────────────
 
+def _is_completed(output_dir: Path, task_id: str, model_short: str, variant: str) -> bool:
+    """Return True if a successful (non-error) result already exists for this combination."""
+    for f in output_dir.glob(f"{task_id}_{model_short}_{variant}_*.json"):
+        try:
+            d = json.loads(f.read_text())
+            trace = d.get("trace", {})
+            if not trace.get("error") and trace.get("final_answer"):
+                return True
+        except Exception:
+            pass
+    return False
+
+
 def run_experiment(
     models: list[str],
     variants: list[str],
     tasks: list[str],
     output_dir: Path,
     dry_run: bool = False,
+    rate_limit_delay: int = 6,
+    skip_completed: bool = False,
 ) -> None:
     import realdataagentbench.harness.providers as providers_module
     from realdataagentbench.core.registry import TaskRegistry
@@ -133,6 +148,8 @@ def run_experiment(
     tasks_dir = ROOT / "tasks"
     registry = TaskRegistry(tasks_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    is_groq_model = lambda m: "llama" in m.lower() or "groq" in m.lower()
 
     total = len(models) * len(variants) * len(tasks)
     done = 0
@@ -164,8 +181,11 @@ def run_experiment(
 
             for task_id in tasks:
                 done += 1
-                ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
                 print(f"[{done}/{total}] {task_id} | model={model} | variant={variant}")
+
+                if skip_completed and _is_completed(output_dir, task_id, model_short, variant):
+                    print("  SKIP — successful result already exists")
+                    continue
 
                 if dry_run:
                     task = registry.get(task_id)
@@ -174,7 +194,7 @@ def run_experiment(
 
                 result = runner.run_task(task_id)
 
-                # Save with variant-encoded filename (overrides runner's default save)
+                ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
                 fname = f"{task_id}_{model_short}_{variant}_{ts}.json"
                 out_path = output_dir / fname
                 out_path.write_text(
@@ -182,15 +202,17 @@ def run_experiment(
                 )
                 trace = result.get("trace", {})
                 tokens = trace.get("total_input_tokens", 0) + trace.get("total_output_tokens", 0)
-                print(f"  saved → {fname}  |  tokens={tokens:,}")
+                status = "ERR" if trace.get("error") else "OK"
+                print(f"  [{status}] saved → {fname}  |  tokens={tokens:,}")
 
-                # Groq free tier: ~30k tokens/min. model_002 alone used 61k tokens.
-                # Wait 90 s between Groq calls so the rate-limit window resets.
-                if "llama" in model.lower() or "groq" in model.lower():
-                    print("  [groq] waiting 90 s for rate-limit reset...")
-                    time.sleep(90)
+                # Groq free tier: ~30 RPM. Sleep between calls to respect the limit.
+                # Note: TPD cap (100k tokens/day) is the harder constraint — model_002
+                # alone uses ~61k tokens. Run model_002 on a separate day if needed.
+                if is_groq_model(model) and rate_limit_delay > 0:
+                    print(f"  [groq] waiting {rate_limit_delay}s...")
+                    time.sleep(rate_limit_delay)
 
-    print(f"\nDone. {done} run(s) written to {output_dir}/")
+    print(f"\nDone. {done} run(s) processed, output in {output_dir}/")
 
 
 def main() -> None:
@@ -198,28 +220,40 @@ def main() -> None:
     parser.add_argument("--model", choices=list(EXPERIMENT_MODELS.keys()), default=None,
                         help="Run only this model (default: all three)")
     parser.add_argument("--variant", choices=["v0", "v1", "v2"], default=None,
-                        help="Run only this prompt variant (default: all three)")
+                        action="append", dest="variants_filter",
+                        help="Run only this variant (repeatable: --variant v1 --variant v2; default: all three)")
     parser.add_argument("--task", choices=EXPERIMENT_TASKS, default=None,
-                        help="Run only this task (default: all five)")
+                        action="append", dest="tasks_filter",
+                        help="Run only this task (repeatable: --task a --task b; default: all five)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Validate setup without making any API calls")
     parser.add_argument("--output-dir", default="outputs/experiment",
                         help="Where to write results (default: outputs/experiment)")
+    parser.add_argument("--rate-limit-delay", type=int, default=6,
+                        help="Seconds to sleep between Groq/Llama calls (default: 6)")
+    parser.add_argument("--skip-completed", action="store_true",
+                        help="Skip task+variant combinations that already have a successful result")
     args = parser.parse_args()
 
-    models   = [args.model]   if args.model   else list(EXPERIMENT_MODELS.keys())
-    variants = [args.variant] if args.variant else ["v0", "v1", "v2"]
-    tasks    = [args.task]    if args.task    else EXPERIMENT_TASKS
+    models   = [args.model]           if args.model           else list(EXPERIMENT_MODELS.keys())
+    variants = args.variants_filter   if args.variants_filter else ["v0", "v1", "v2"]
+    tasks    = args.tasks_filter      if args.tasks_filter    else EXPERIMENT_TASKS
 
     total_runs = len(models) * len(variants) * len(tasks)
     print("=" * 60)
     print("Uncertainty-Uplift Experiment")
-    print(f"  Models:   {models}")
-    print(f"  Variants: {variants}")
-    print(f"  Tasks:    {tasks}")
-    print(f"  Total runs: {total_runs}")
+    print(f"  Models:      {models}")
+    print(f"  Variants:    {variants}")
+    print(f"  Tasks:       {tasks}")
+    print(f"  Total runs:  {total_runs}")
     if args.dry_run:
         print("  MODE: DRY RUN (no API calls)")
+    if args.skip_completed:
+        print("  --skip-completed: existing successful results will be reused")
+    if any("llama" in m or "groq" in m for m in models):
+        print(f"  Groq delay:  {args.rate_limit_delay}s between calls")
+        print("  NOTE: Groq free tier caps at 100k tokens/day. model_002 uses ~61k")
+        print("        tokens alone — run it separately if hitting the daily cap.")
     print("=" * 60)
 
     run_experiment(
@@ -228,6 +262,8 @@ def main() -> None:
         tasks=tasks,
         output_dir=Path(args.output_dir),
         dry_run=args.dry_run,
+        rate_limit_delay=args.rate_limit_delay,
+        skip_completed=args.skip_completed,
     )
 
 

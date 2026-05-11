@@ -98,11 +98,11 @@
 
 ---
 
-> **Insight 6 — The stat-validity gap is partly addressable by prompting, but the gain is uneven**
+> **Insight 6 — Prompting closes the stat-validity gap for GPT-4.1; has zero effect on Llama**
 >
-> The pre-registered uncertainty-uplift experiment (GPT-4.1, 15 runs, results below) showed that explicit uncertainty instructions raised mean stat_validity from 0.550 to 1.000 (+0.450). Qualitative review of the actual outputs found the gain is **genuine on classification and regression metric tasks** — the model correctly applied the binomial SE formula, attempted bootstrap estimation, and flagged single-split limitations with substantive caveats. On **feature importance tasks**, the gain is primarily lexical: the model added hedging language ("stability is not formally quantified") without computing bootstrap CIs.
+> The pre-registered uncertainty-uplift experiment (two models, results in [docs/experiments/results_summary.md](docs/experiments/results_summary.md)) found that explicit uncertainty instructions raised GPT-4.1's mean stat_validity from 0.550 to 1.000 (+0.450) with genuine SE computations on 3/5 tasks. Llama 3.3-70B's mean stat_validity was unchanged (Δ = 0.000) — the model ignored the instruction entirely, producing outputs word-for-word equivalent to baseline. **The prompting lever works only for models that follow complex system-prompt instructions.**
 >
-> This finding has two implications. First, prompting is a practical lever: V1-style uncertainty instructions can meaningfully improve output quality for metric-reporting workflows at modest token cost (+31% on average for V1; V2 is actually −15% vs baseline). Second, the lexical stat_validity scorer overcounts on feature importance tasks — a deferred offer ("if you need CIs, let me know") scores the same as actually computing them. **The scorer limitation and the prompting gap are separate problems requiring separate fixes.**
+> The stat_validity scorer was patched (v1.5, 2026-05-10) to give partial credit (0.5×) for lexical-only uncertainty language without numeric evidence. Leaderboard score changes are small (−0.001 to −0.034 per model). The scorer limitation and the model capability gap are now empirically separable — GPT-4.1 closes the gap with genuine computation; Llama cannot close it through prompting alone.
 
 ---
 
@@ -273,20 +273,19 @@ The 6 real-data tasks (`eda_004`, `eda_005`, `feat_006`, `model_006`, `stat_006`
 
 ## Uncertainty Prompting Experiment (Pre-registered)
 
-**Design pre-registered:** 2026-04-17 &nbsp;·&nbsp; **GPT-4.1 execution:** 2026-05-05  
-**→ [Full results: docs/experiments/results_gpt41.md](docs/experiments/results_gpt41.md)**
+**Design pre-registered:** 2026-04-17 &nbsp;·&nbsp; **GPT-4.1:** complete (2026-05-05) &nbsp;·&nbsp; **Llama:** partial (Groq TPD cap)  
+**→ [Two-model summary](docs/experiments/results_summary.md) · [GPT-4.1 detail](docs/experiments/results_gpt41.md) · [Llama detail](docs/experiments/results_llama.md)**
 
-Can explicit uncertainty instructions close RDAB's correctness–validity gap? Three prompt variants (V0 baseline, V1 uncertainty instruction, V2 statistician persona) were run on 5 tasks with GPT-4.1 (15 runs). Llama V1/V2 pending re-run after Groq rate-limit fix.
+Can explicit uncertainty instructions close RDAB's correctness–validity gap? Three prompt variants (V0/V1/V2) on 5 tasks, 2 models. Correctness held at 1.000 across all runs — zero trade-off.
 
-**Summary (GPT-4.1, 5 tasks × 3 variants):**
+**Two-model result:**
 
-| Variant | Mean stat_validity | Δ vs V0 | Mean tokens | Token change |
-|---------|-----------------:|:-------:|:-----------:|:------------:|
-| V0 (baseline) | 0.550 | — | 12,677 | baseline |
-| V1 (uncertainty) | 1.000 | **+0.450** | 16,664 | +31% |
-| V2 (statistician) | 0.950 | +0.400 | 10,713 | −15% |
+| Model | V0 baseline | V1 (uncertainty) | V2 (statistician) | V1 Δ |
+|-------|:-----------:|:----------------:|:-----------------:|:----:|
+| GPT-4.1 (5/5 tasks) | 0.550 | 1.000 | 0.950 | **+0.450** |
+| Llama 3.3-70B (partial) | 0.500 | 0.500 | 0.500 | **0.000** |
 
-Correctness held at 1.000 across all 15 runs — zero trade-off. Qualitative review found genuine reasoning uplift on 3 of 5 tasks (metric-reporting); on feature importance tasks the gain is primarily lexical. Two-model pre-registered criterion not yet met (Llama data pending). Full per-task verdicts and outcome assessment in the [results doc](docs/experiments/results_gpt41.md).
+**The prompting effect is model-dependent.** GPT-4.1 responded with genuine SE computations, bootstrap attempts, and qualified single-split caveats. Llama 3.3-70B ignored the instruction entirely — its V1 output was indistinguishable from V0. Pre-registered Result A (Δ > 0.15 for ≥2 models) is confirmed for GPT-4.1; Llama does not meet the threshold. This is the more informative result: instruction-following capability is the prerequisite for prompting-based stat-validity improvement.
 
 ---
 
@@ -315,7 +314,7 @@ Correctness held at 1.000 across all 15 runs — zero trade-off. Qualitative rev
 
 ## Known Limitations
 
-**Lexical stat-validity scorer.** Detects vocabulary, not reasoning quality. A model that writes "confidence interval" without computing one still passes Check 1. The uncertainty-uplift experiment confirmed this directly: deferred offers to compute CIs score the same as actual SE computations on the current scorer. Calibration script quantifies the aggregate gap; a numeric-evidence check is the planned fix.
+**Partially-lexical stat-validity scorer.** Check 1 (uncertainty quantification) was patched in v1.5 to require a decimal number within 200 characters of a keyword match — lexical-only matches now score 0.5× instead of 1.0×. Score impact: −0.001 to −0.034 per model across 1,356 traces. Residual limitation: the numeric-evidence window is loose (any decimal qualifies, not specifically a CI bound or SE). Check 3 (interpretation) remains fully lexical. See [SCORING_SPEC.md §4](SCORING_SPEC.md#4-statistical-validity--range-00-10) for the full spec.
 
 **Seeded synthetic datasets.** 33 of 39 tasks use reproducible generators — RDAB does not test robustness to real-world data quality issues (mixed dtypes, corrupted records, inconsistent encoding). The 6 real-data tasks partially address this.
 

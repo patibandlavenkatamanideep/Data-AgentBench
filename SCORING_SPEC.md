@@ -106,16 +106,27 @@ if error: efficiency × 0.5
 
 **Intent:** A rigorous data scientist reports uncertainty, names the appropriate method, interprets results in context, and avoids p-hacking. This dimension checks for those four qualities using vocabulary signals in the final answer. All four checks are **category-aware** — each task category has its own vocabulary lists for Checks 2 and 3.
 
-Score = checks passed / 4 (increments of 0.25). Minimum achievable score ≈ 0.25 (Check 4 almost always passes by default).
+Score = sum(check values) / 4. Check 1 is graded in thirds (see below); Checks 2–4 remain binary. Minimum achievable score ≈ 0.125 (Check 4 almost always passes; Check 1 partial = 0.5 when keywords appear without numbers).
 
-### Check 1 — Uncertainty Quantification
+### Check 1 — Uncertainty Quantification (graded)
 
-Does the answer quantify uncertainty using any of: *p-value, confidence interval, std, standard deviation, standard error, approximately, range, bootstrap, variance, stability, robustness, reliability, prediction interval, error bar, margin of error*.
+**v1.5 change:** Check 1 now distinguishes genuine quantification from lexical hedging. A keyword match alone is no longer sufficient for full credit.
 
-| ✅ Passes | ❌ Fails |
-|---|---|
-| *"mean ≈ $52k with std $18.4k"* | *"mean is $52,341"* |
-| *"AUC = 0.84 (bootstrap 95% CI: 0.79–0.89)"* | *"AUC is 0.84"* |
+| Score | Condition |
+|:-----:|-----------|
+| **1.0** | A keyword from the list below appears **AND** a decimal number (e.g. `0.031`, `0.95`) is found within 200 characters of the match |
+| **0.5** | A keyword appears but **no numeric artifact** is nearby (lexical-only — e.g. "you should report a confidence interval") |
+| **0.0** | No keyword match |
+
+Keywords: *p-value, confidence interval, CI, std, standard deviation, standard error, approximately, around, range, bootstrap, variance, stability, stable, robustness, reliability, prediction interval, error bar, margin of error*.
+
+| Score | Example |
+|:-----:|---------|
+| **1.0** | *"SE = sqrt(p(1−p)/n) = 0.031 for the test set (n=140)"* — keyword + decimal number |
+| **0.5** | *"You should report a standard error for each metric if needed"* — keyword, no number |
+| **0.0** | *"The accuracy is high and the model performs well"* — no keyword |
+
+**Rationale:** The uncertainty-uplift experiment (2026-05-05) confirmed that a deferred offer ("let me know if you need CIs") receives the same lexical score as an actual SE computation. This patch separates the two. Score impact on existing leaderboard: −0.001 to −0.034 per model across 1,356 re-scored traces (see §9).
 
 ### Check 2 — Appropriate Method Vocabulary (category-specific)
 
@@ -226,8 +237,8 @@ No source code required. Any reviewer can follow these steps:
 |---|---|---|---|
 | ~~**L1**~~ | ~~Stat Validity~~ | ~~Check 2 vocabulary is EDA-only~~ | ✅ **Fixed in v1.4** — all four checks are now category-aware |
 | **L2** | Efficiency | Token budgets calibrated on Claude Sonnet 4.6, not model-agnostic | 🔴 High priority — planned fix |
-| **L3** | Stat Validity | Check 1 accepts weak hedges ("approximately", "range") as uncertainty | 🟡 Known, acceptable tradeoff |
-| **L4** | Stat Validity | Check 3 detects vocabulary, not reasoning quality — can't verify that "confidence interval" was correctly computed | 🟡 Mitigated by LLM-judge calibration script |
+| ~~**L3**~~ | ~~Stat Validity~~ | ~~Check 1 accepts weak hedges ("approximately", "range") as uncertainty~~ | ✅ **Partially fixed in v1.5** — lexical-only matches now score 0.5×; numeric evidence required for full credit |
+| **L4** | Stat Validity | Check 1 numeric-evidence window (200 chars) is loose — any decimal number qualifies, not specifically a CI bound or SE value. Check 3 still detects vocabulary, not reasoning quality. | 🟡 Mitigated by LLM-judge calibration script |
 | **L5** | Stat Validity | Check 4 (p-hacking) has never fired — aspirational guard | 🟡 Retained; patterns tightened in future iterations |
 | **L6** | Correctness | Verbose numeric outputs can pass checks by accidental inclusion | 🟡 Partially mitigated by task design |
 | **L7** | Correctness | No contradiction detection across sentences | 🟠 Known fundamental limit of string scoring |
@@ -245,6 +256,7 @@ No source code required. Any reviewer can follow these steps:
 | 1.2 | 2026-04-18 | Added coverage threshold, real vs. synthetic classification, pass/fail examples, verification checklist |
 | 1.3 | 2026-04-18 | Condensed for print readability; promoted L1 and L2 to high priority |
 | **1.4** | **2026-04-25** | **Fixed L1: all four checks now category-aware. Check 3 (interpretation) has per-category signal lists for modeling/feature-engineering/ML engineering/stat-inference. Expanded Check 1 uncertainty vocab (bootstrap, variance, stability, robustness). Added `--temperature` flag for deterministic multi-run mode. 7 new tests.** |
+| **1.5** | **2026-05-10** | **Partially fixed L3: Check 1 now graded (1.0 / 0.5 / 0.0) based on numeric evidence. Keyword + decimal number within 200 chars → 1.0; keyword alone (lexical-only) → 0.5; no match → 0.0. Score impact across 1,356 re-scored traces: −0.001 to −0.034 per model, −0.007 to −0.019 per category. Largest drops: gpt-4o-mini (−0.032), llama (−0.034). Models with no uncertainty vocabulary unchanged (Gemini 2.5 Flash, claude-opus). Also: `scoring/__init__.py` LLMJudgeScorer import made lazy to avoid anthropic SDK timeout on scorer import.** |
 
 ---
 
