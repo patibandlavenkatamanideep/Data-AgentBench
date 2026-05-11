@@ -430,4 +430,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
 MIT — see [LICENSE](LICENSE).
 
-Built by [Venkata Manideep Patibandla](https://github.com/patibandlavenkatamanideep) · [LinkedIn](https://linkedin.com/in/venkata-manideep-patibandla)
+Built by [Venkata Manideep Patibandla](https://venkatamanideep.com/) · [LinkedIn](https://www.linkedin.com/in/manideep-analytics/) · [GitHub](https://github.com/patibandlavenkatamanideep)
