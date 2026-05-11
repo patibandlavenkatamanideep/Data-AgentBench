@@ -273,19 +273,21 @@ The 6 real-data tasks (`eda_004`, `eda_005`, `feat_006`, `model_006`, `stat_006`
 
 ## Uncertainty Prompting Experiment (Pre-registered)
 
-**Design pre-registered:** 2026-04-17 &nbsp;·&nbsp; **GPT-4.1:** complete (2026-05-05) &nbsp;·&nbsp; **Llama:** partial (Groq TPD cap)  
+**Design pre-registered:** 2026-04-17 &nbsp;·&nbsp; **GPT-4.1:** complete — 5 tasks × 3 variants &nbsp;·&nbsp; **Llama:** 3 tasks × V1/V2 complete; model_001/model_002 need paid Groq tier (~60k tokens/run each)  
 **→ [Two-model summary](docs/experiments/results_summary.md) · [GPT-4.1 detail](docs/experiments/results_gpt41.md) · [Llama detail](docs/experiments/results_llama.md)**
 
 Can explicit uncertainty instructions close RDAB's correctness–validity gap? Three prompt variants (V0/V1/V2) on 5 tasks, 2 models. Correctness held at 1.000 across all runs — zero trade-off.
 
 **Two-model result:**
 
-| Model | V0 baseline | V1 (uncertainty) | V2 (statistician) | V1 Δ |
-|-------|:-----------:|:----------------:|:-----------------:|:----:|
-| GPT-4.1 (5/5 tasks) | 0.550 | 1.000 | 0.950 | **+0.450** |
-| Llama 3.3-70B (partial) | 0.500 | 0.500 | 0.500 | **0.000** |
+| Model | V0 baseline | V1 (uncertainty) | V2 (statistician) | V1 Δ | Coverage |
+|-------|:-----------:|:----------------:|:-----------------:|:----:|:--------:|
+| GPT-4.1 | 0.550 | 1.000 | 0.950 | **+0.450** | 5/5 tasks |
+| Llama 3.3-70B | 0.500 | 0.500 | 0.500 | **0.000** | 3/5 tasks (V0 all 5) |
 
-**The prompting effect is model-dependent.** GPT-4.1 responded with genuine SE computations, bootstrap attempts, and qualified single-split caveats. Llama 3.3-70B ignored the instruction entirely — its V1 output was indistinguishable from V0. Pre-registered Result A (Δ > 0.15 for ≥2 models) is confirmed for GPT-4.1; Llama does not meet the threshold. This is the more informative result: instruction-following capability is the prerequisite for prompting-based stat-validity improvement.
+Llama coverage note: V1 complete on mod_004 (1/5); feat_002 and model_003 V1 pending daily reset. V0 complete on 4/5 tasks. All available V1 and V2 comparisons return Δ = 0.000.
+
+**The prompting effect is model-dependent.** GPT-4.1 responded with genuine SE computations, bootstrap attempts, and qualified single-split caveats. Llama 3.3-70B's V1 output contained no uncertainty language of any kind — not "standard error," not "confidence interval," not a single decimal qualified with ± — while GPT-4.1 V1 reported `SE = sqrt(p(1−p)/n) = 0.031` on the same task. The outputs differ in content, not just in score. Pre-registered Result A (Δ > 0.15 for ≥2 models) is confirmed for GPT-4.1; Llama does not meet the threshold. This is the more informative finding: instruction-following capability is the prerequisite for prompting-based stat-validity improvement.
 
 ---
 
@@ -370,9 +372,9 @@ docs/
 
 ## Roadmap
 
-- **Done:** Task schema and harness (168 tests), 39 tasks, 12 models with live leaderboard, per-run cost tracking, category-aware scorer, 6 real-data tasks, LLM-as-judge calibration, multi-run CI; free models + gpt-4.1 family at full 39-task CI; GPT-4.1 uncertainty-uplift experiment (15 runs, qualitative review complete)
-- **In progress:** claude-haiku 39-task CI; calibration κ between lexical scorer and LLM judge; Llama V1/V2 uplift re-run (rate-limit fix pending)
-- **Next:** Stat_validity scorer patch (numeric-evidence check); NLP, visualization, and time-series task categories; arXiv paper
+- **Done:** Task schema and harness (168 tests), 39 tasks, 12 models with live leaderboard, per-run cost tracking, category-aware scorer, 6 real-data tasks, LLM-as-judge calibration, multi-run CI; free models + gpt-4.1 family at full 39-task CI; two-model uncertainty-uplift experiment (GPT-4.1 complete, Llama partial — model-dependent effect confirmed); stat_validity v1.5 patch (numeric-evidence check, partial credit for lexical-only matches; −0.001 to −0.034 per model across 1,356 traces)
+- **In progress:** claude-haiku 39-task CI (33/39 → 39/39); calibration κ between lexical scorer and LLM judge (v1.5 re-run pending); Llama feat_002/model_003 V1 runs (pending daily TPD reset)
+- **Next:** NLP, visualization, and time-series task categories; arXiv paper; Tether/CostGuard integration
 
 ---
 
@@ -428,4 +430,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
 MIT — see [LICENSE](LICENSE).
 
-Built by [Venkata Manideep Patibandla](https://github.com/patibandlavenkatamanideep) — focused on LLM evaluation, agent systems, and statistically robust AI workflows.
+Built by [Venkata Manideep Patibandla](https://github.com/patibandlavenkatamanideep) · [LinkedIn](https://linkedin.com/in/venkata-manideep-patibandla)
