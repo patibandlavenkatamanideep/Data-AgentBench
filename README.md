@@ -374,7 +374,8 @@ docs/
 
 - **Done:** Task schema and harness (168 tests), 39 tasks, 12 models with live leaderboard, per-run cost tracking, category-aware scorer, 6 real-data tasks, LLM-as-judge calibration, multi-run CI; free models + gpt-4.1 family at full 39-task CI; two-model uncertainty-uplift experiment (GPT-4.1 complete, Llama partial — model-dependent effect confirmed); stat_validity v1.5 patch (numeric-evidence check, partial credit for lexical-only matches; −0.001 to −0.034 per model across 1,356 traces)
 - **In progress:** claude-haiku 39-task CI (33/39 → 39/39); calibration κ between lexical scorer and LLM judge (v1.5 re-run pending); Llama feat_002/model_003 V1 runs (pending daily TPD reset)
-- **Next:** NLP, visualization, and time-series task categories; arXiv paper; Tether/CostGuard integration
+- **Done (integration):** Tether + CostGuard `/replay` — production traces captured via Tether feed directly into CostGuard for RDAB-grounded cost-vs-quality comparison with 95% bootstrap CI
+- **Next:** NLP, visualization, and time-series task categories; arXiv paper
 
 ---
 
@@ -418,11 +419,15 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
 ---
 
-## CostGuard — Companion Tool
+## The Evaluation Stack
 
-**CostGuard** lets you upload your own CSV and run a live cost-performance analysis against any model — without writing code. RDAB uses only its own seeded and publicly licensed datasets; CostGuard is interactive and processes your data in memory.
+RDAB is the benchmark layer of a three-project evaluation stack:
 
-**[Live app →](https://costguard-production-3afa.up.railway.app/)** &nbsp;·&nbsp; **[GitHub →](https://github.com/patibandlavenkatamanideep/CostGuard)**
+- **RDAB (this repo)** — benchmark methodology. 39 tasks, 4-dimensional scoring, 1,412+ runs across 12 models.
+- **[CostGuard](https://github.com/patibandlavenkatamanideep/CostGuard)** — runtime layer. Applies RDAB-calibrated scoring on every proxy call; `POST /replay` replays production traces against alternate models with a 95% bootstrap CI and cost savings estimate.
+- **[Tether](https://github.com/patibandlavenkatamanideep/Tether)** — capture layer. Wraps OpenAI clients and persists every production call to SQLite. Feed the resulting database into CostGuard `/replay` to answer "can I use the cheaper model?" with statistical confidence.
+
+**CostGuard live app →** [costguard-production-3afa.up.railway.app](https://costguard-production-3afa.up.railway.app/) — upload your own CSV, run a live cost-performance analysis against any of the 12 RDAB-benchmarked models.
 
 ---
 
