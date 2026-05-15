@@ -54,6 +54,8 @@
 > ✓ = full 39-task multi-run CI &nbsp;·&nbsp; † = CI in progress &nbsp;·&nbsp; ⚠️ = single-run point estimate, no CI planned (cost-prohibitive)  
 > **Ranking requires ≥80% task coverage** — see [SCORING_SPEC.md §10](SCORING_SPEC.md#10-ranking-eligibility--coverage-threshold)
 
+> **Coverage caveats:** Models marked ⚠️ (Claude Sonnet, Claude Opus, GPT-5) cover 23/39 tasks — single-run, cost-prohibitive to scale. Their scores are point estimates with no CI and are not ranked. Cross-model comparisons involving ⚠️ models are directional signals, not controlled head-to-head results. Llama 3.3-70b vs GPT-5 (0.798 vs 0.780) is the most headline-able comparison — both at 39/39 full coverage — but GPT-5's 23-task exposure means it ran a different (easier) task mix. Findings that reference these models note this explicitly; all other findings involve ranked (✓) models only.
+
 ---
 
 ## Key Findings
@@ -76,7 +78,7 @@
 > | ML Engineering | gpt-4.1-mini | 0.866 |
 > | Modeling | claude-sonnet-4-6 ⚠️ | 0.871 |
 >
-> Llama 3.3-70b (free, 39/39 tasks) scores higher than GPT-5 (0.798 vs 0.780) — with the caveat that GPT-5 covers only 23/39 tasks (single-run, partial). The comparison is directional, not a controlled head-to-head. **Benchmark on your actual task mix before committing to a provider.**
+> Llama 3.3-70b (free, 39/39 tasks) scores higher than GPT-5 (0.798 vs 0.780) — see coverage caveats above. **Benchmark on your actual task mix before committing to a provider.**
 
 ---
 
@@ -94,7 +96,7 @@
 
 > **Insight 5 — The best model is rarely the most expensive**
 >
-> gpt-4.1-mini (0.870) is statistically tied with gpt-4.1 (0.875) and scores higher than GPT-5 (0.780) at 65× lower cost ($0.010 vs $0.671 per task) — noting that GPT-5 covers 23/39 tasks vs 39/39 for gpt-4.1-mini. At production scale, that gap determines whether agentic data workflows are economically viable.
+> gpt-4.1-mini (0.870) is statistically tied with gpt-4.1 (0.875) at 65× lower cost ($0.010 vs $0.033 per task). At production scale, that cost gap determines whether agentic data workflows are economically viable. GPT-5 comparison is directional only — see coverage caveats above.
 
 ---
 
@@ -103,6 +105,19 @@
 > The pre-registered uncertainty-uplift experiment (two models, results in [docs/experiments/results_summary.md](docs/experiments/results_summary.md)) found that explicit uncertainty instructions raised GPT-4.1's mean stat_validity from 0.550 to 1.000 (+0.450) with genuine SE computations on 3/5 tasks. Llama 3.3-70B's mean stat_validity was unchanged (Δ = 0.000) — the model ignored the instruction entirely, producing outputs word-for-word equivalent to baseline. **The prompting lever works only for models that follow complex system-prompt instructions.**
 >
 > The stat_validity scorer was patched (v1.5, 2026-05-10) to give partial credit (0.5×) for lexical-only uncertainty language without numeric evidence. Leaderboard score changes are small (−0.001 to −0.034 per model). The scorer limitation and the model capability gap are now empirically separable — GPT-4.1 closes the gap with genuine computation; Llama cannot close it through prompting alone.
+
+---
+
+## Uncertainty Prompting Experiment — Headline Result
+
+Can explicit uncertainty instructions close the correctness–validity gap? Two models, 5 tasks each, three prompt variants (V0 baseline / V1 uncertainty / V2 statistician). Correctness held at 1.000 across all runs — zero quality trade-off.
+
+| Model | V0 baseline | V1 Δ | V2 Δ | Coverage |
+|-------|:-----------:|:----:|:----:|:--------:|
+| GPT-4.1 | 0.550 | **+0.450** | +0.400 | 5/5 tasks |
+| Llama 3.3-70B | 0.500 | **0.000** | 0.000 | 3/5 tasks |
+
+GPT-4.1 responded with genuine SE computations and bootstrap attempts. Llama's output was word-for-word equivalent to baseline — no uncertainty language of any kind. **The prompting lever works only for models that follow complex system-prompt instructions.** Full results → [docs/experiments/results_summary.md](docs/experiments/results_summary.md)
 
 ---
 
@@ -135,7 +150,7 @@ Most benchmarks ask: *"Did the agent get the right answer?"* That is not enough.
 
 **An agent can score 1.0 on correctness and 0.25 on statistical validity on the same task.** That delta is what RDAB measures — and what every other benchmark ignores.
 
-| Feature | **RDAB** | AgentBench | DA-Code | ScienceAgentBench | HELM |
+| Feature | **RDAB** | [AgentBench](https://github.com/THUDM/AgentBench) | [DA-Code](https://github.com/xlang-ai/DA-Code) | [ScienceAgentBench](https://github.com/OSU-NLP-Group/ScienceAgentBench) | [HELM](https://github.com/stanford-crfm/helm) |
 |---------|:--------:|:----------:|:-------:|:-----------------:|:----:|
 | Statistical validity dimension | ✓ | ✗ | ✗ | Partial | ✗ |
 | 95% CI on leaderboard | ✓ | ✗ | ✗ | ✗ | ✗ |
@@ -273,21 +288,10 @@ The 6 real-data tasks (`eda_004`, `eda_005`, `feat_006`, `model_006`, `stat_006`
 
 ## Uncertainty Prompting Experiment (Pre-registered)
 
-**Design pre-registered:** 2026-04-17 &nbsp;·&nbsp; **GPT-4.1:** complete — 5 tasks × 3 variants &nbsp;·&nbsp; **Llama:** 3 tasks × V1/V2 complete; model_001/model_002 need paid Groq tier (~60k tokens/run each)  
+Design pre-registered 2026-04-17. Full per-model write-ups:  
 **→ [Two-model summary](docs/experiments/results_summary.md) · [GPT-4.1 detail](docs/experiments/results_gpt41.md) · [Llama detail](docs/experiments/results_llama.md)**
 
-Can explicit uncertainty instructions close RDAB's correctness–validity gap? Three prompt variants (V0/V1/V2) on 5 tasks, 2 models. Correctness held at 1.000 across all runs — zero trade-off.
-
-**Two-model result:**
-
-| Model | V0 baseline | V1 (uncertainty) | V2 (statistician) | V1 Δ | Coverage |
-|-------|:-----------:|:----------------:|:-----------------:|:----:|:--------:|
-| GPT-4.1 | 0.550 | 1.000 | 0.950 | **+0.450** | 5/5 tasks |
-| Llama 3.3-70B | 0.500 | 0.500 | 0.500 | **0.000** | 3/5 tasks (V0 all 5) |
-
-Llama coverage note: V1 complete on mod_004 (1/5); feat_002 and model_003 V1 pending daily reset. V0 complete on 4/5 tasks. All available V1 and V2 comparisons return Δ = 0.000.
-
-**The prompting effect is model-dependent.** GPT-4.1 responded with genuine SE computations, bootstrap attempts, and qualified single-split caveats. Llama 3.3-70B's V1 output contained no uncertainty language of any kind — not "standard error," not "confidence interval," not a single decimal qualified with ± — while GPT-4.1 V1 reported `SE = sqrt(p(1−p)/n) = 0.031` on the same task. The outputs differ in content, not just in score. Pre-registered Result A (Δ > 0.15 for ≥2 models) is confirmed for GPT-4.1; Llama does not meet the threshold. This is the more informative finding: instruction-following capability is the prerequisite for prompting-based stat-validity improvement.
+See the [Headline Result section above](#uncertainty-prompting-experiment--headline-result) for the key finding. The detailed write-up in docs covers: per-task score tables, qualitative output comparisons (GPT-4.1 V1 `SE = sqrt(p(1−p)/n) = 0.031` vs Llama V1 word-for-word baseline), scorer v1.5 patch impact (−0.001 to −0.034 per model), and status of Llama runs pending daily TPD reset.
 
 ---
 
